@@ -33,11 +33,14 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
 #fillChoices button{width:100%;text-align:left;padding:14px;border-radius:12px;border:1px solid #ccc;background:#fff;font-size:16px}
 #fillChoices button.correct{background:#d9f7df;border-color:#38a169}
 #fillChoices button.wrong{background:#ffe0e0;border-color:#d33}
+#fillChoices button.ok{background:#d9f7df;border-color:#38a169}
+#fillChoices button.ng{background:#ffe0e0;border-color:#d33}
 .blank{display:inline-block;min-width:120px;border-bottom:3px solid currentColor;text-align:center;font-weight:700}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23111827'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='48' fill='white'%3E熟%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -74,7 +77,7 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
 <section id="quiz" class="hidden"><div class="card">
 <div class="small" id="count"></div><div class="word" id="qword"></div><div class="hint" id="qhint"></div>
 <div class="choices" id="choices"></div>
-<div id="fillArea" class="hidden"><div id="fillSentence" class="fillSentence"></div><input id="fillInput" type="text" autocomplete="off" autocapitalize="none" placeholder="空欄に入る熟語を入力"><button id="fillSubmit" class="primary" style="width:100%;margin-top:9px" onclick="submitFill()">答える</button><div id="fillHint" class="small" style="margin-top:8px">ヒント：熟語のスペルを入力してください</div></div>
+<div id="fillArea" class="hidden"><div id="fillSentence" class="fillSentence"></div><div id="fillChoices"></div><div id="fillHint" class="small" style="margin-top:8px">ヒント：英文の意味に合う熟語を4つの選択肢から選んでください</div></div>
 <div id="explain" class="explain hidden"></div>
 <button id="next" class="primary" style="width:100%;margin-top:10px" onclick="nextQ()">次の問題</button>
 </div></section>
@@ -421,15 +424,17 @@ function draw(){
  answered=false;let w=questions[qi];
  document.getElementById('count').textContent=`${qi+1} / ${questions.length}`;
  document.getElementById('qword').textContent=mode==='fill'?'✏️ 空所補充':(mode==='jaen'?w.ja:w.en);
- document.getElementById('qhint').textContent=mode==='fill'?'英文の空欄に入る熟語を入力':'英語から日本語を選択';
+ document.getElementById('qhint').textContent=mode==='fill'?'英文の空欄に入る熟語を4択で選択':'英語から日本語を選択';
  document.getElementById('choices').innerHTML='';
  document.getElementById('fillArea').classList.toggle('hidden',mode!=='fill');
  if(mode==='fill'){
    const key=getFillKey(w), raw=FILL_SENTENCES[key][Math.floor(Math.random()*FILL_SENTENCES[key].length)];
    fillSentence=raw; fillAnswer=key.replace(/[～~]/g,'').trim();
    document.getElementById('fillSentence').innerHTML=esc(raw).replace(/___/g,'<span class="blank">　　　</span>');
-   document.getElementById('fillInput').value='';document.getElementById('fillInput').disabled=false;document.getElementById('fillSubmit').disabled=false;
-   setTimeout(()=>document.getElementById('fillInput').focus(),50);
+   const distractors=shuffle(words.filter(x=>x.en!==w.en).map(x=>x.en.replace(/[～~]/g,'').trim()).filter(x=>x&&x!==fillAnswer));
+   const vals=shuffle([fillAnswer,...distractors.slice(0,3)]);
+   document.getElementById('fillChoices').innerHTML=vals.map(v=>`<button type="button" data-fill-answer="${esc(v)}">${esc(v)}</button>`).join('');
+   document.querySelectorAll('#fillChoices button').forEach(btn=>btn.addEventListener('click',()=>answer(btn,btn.dataset.fillAnswer,false,normalizeFill(btn.dataset.fillAnswer)===normalizeFill(fillAnswer))));
  }else{
    let pool=words.filter(x=>x.en!==w.en);
    let vals=mode==='jaen'?[w.en,...shuffle(pool.map(x=>x.en)).slice(0,3)]:[w.ja,...shuffle(pool.map(x=>x.ja)).slice(0,3)];
@@ -441,9 +446,7 @@ function draw(){
  document.getElementById('explain').classList.add('hidden');
 }
 function submitFill(){
- if(answered)return;
- const w=questions[qi], input=document.getElementById('fillInput').value, ok=acceptableFill(w,input);
- answer(null,input,false,ok);
+ // 旧バージョン互換用。空所補充は4択式になったため通常は使用しません。
 }
 function answer(btn,val,isUnknown=false,forcedOk=null){
  if(answered)return;answered=true;
@@ -457,7 +460,7 @@ function answer(btn,val,isUnknown=false,forcedOk=null){
  e.innerHTML=sentence+`<b>${ok?'正解！':'不正解'}</b>${mode==='fill'&&val?`<br>あなたの回答：<b>${esc(val)}</b>`:''}${isUnknown?'（「わからない」を選択）':''}<br><b>${esc(w.en)}</b> = ${esc(w.ja)}<div class="etymology"><b>📖 語源・イメージ（場面で覚える）</b><br>${esc(guide.summary)}${partsHtml}</div><br><b>復習ポイント</b><br>${ok?'英文の場面ごと覚えると、実際の読解・会話でも出てきやすくなります。':'正解を確認して、英文全体の場面と一緒に熟語を覚えましょう。'}`;
  e.classList.remove('hidden');
  document.querySelectorAll('#choices button').forEach(b=>b.disabled=true);
- document.getElementById('fillInput').disabled=true;document.getElementById('fillSubmit').disabled=true;
+ 
  update();
 }
 function nextQ(){if(qi<questions.length-1){qi++;draw()}else{alert('10問終了！');show('home')}}
@@ -507,5 +510,12 @@ function escapeHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'
 function escapeAttr(s){return escapeHtml(s);}
 function escapeJs(s){return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'\\r');}
 function renderEtymology(w){return typeof etymologyGuide==='function' ? (typeof etymologyGuide(w)==='string' ? etymologyGuide(w) : (etymologyGuide(w)?.summary || '')) : '';}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
 </script>
 </body></html>
