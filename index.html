@@ -182,188 +182,203 @@ let questions=[],qi=0,mode='enja',answered=false,fillAnswer='',fillSentence='';
 function etymologyGuide(w){
   const en = String(w.en || "");
   const ja = String(w.ja || "");
-  const clean = en.replace(/[～~]/g,"").trim();
+  const clean = en.replace(/[～~]/g," ").replace(/\s+/g," ").trim();
   const lower = clean.toLowerCase();
 
-  // 「単語の意味を並べる」だけではなく、
-  // ①頭に浮かぶ場面 → ②単語の動き → ③熟語の意味
-  // の順で覚えられるようにする。
-  const special = {
-    "look forward to ～":"目線を「前（forward）」に向けて、これから来るものを待っている場面。→ 先の楽しみを待つ →「～を楽しみに待つ」",
-    "take care of ～":"care＝「注意・気づかい」を take＝「自分の側に持ってくる」。→ ～に注意を向けて面倒を見る →「～の世話をする」",
-    "give up ～":"up は「上へ」。手に持っていたものを上へ放り出して手放す場面。→「もう続けない」→「～をあきらめる」",
-    "give in":"in は「中へ」。抵抗していた人が相手側へ入ってしまう場面。→ 抵抗をやめる →「屈する」",
-    "get over ～":"over は「～を越えて」。目の前の山や障害を越えて向こう側へ行く場面。→ 障害を乗り越える →「～を克服する」",
-    "get through ～":"through は「～を通り抜けて」。トンネルを最後まで通り抜ける場面。→ 困難な期間を通り抜ける →「～を切り抜ける」",
-    "go through ～":"through は「～を通り抜けて」。自分がその中を実際に通っていく場面。→ 苦しい経験の中を通る →「～を経験する」",
-    "come up with ～":"up は「上へ」、with は「一緒に」。頭の中からアイデアを上へ持ち上げ、手元に持ってくる感じ。→「アイデアを思いつく」",
-    "find out ～":"out は「外へ」。隠れていた情報を外へ引っぱり出して見つける場面。→ 調べて真相を出す →「～を知る・見つけ出す」",
-    "figure out ～":"figure は「数字・形を考える」、out は「外へ」。頭の中で考え抜いて答えを外に出す感じ。→「理解する・解決する」",
-    "point out ～":"point は指を「指す」。out は「外へ」。大事なところを外に向けて指し示す場面。→「～を指摘する」",
-    "put off ～":"off は「離れて」。予定していたことをいったん遠くへ押しやる場面。→「～を延期する」",
-    "put on ～":"on は「接触して」。服を体に乗せてくっつける場面。→「～を身につける」",
-    "take off ～":"off は「離れて」。身についた服を体から離す場面。→「～を脱ぐ」。飛行機なら地面から離れるので「離陸する」",
-    "turn on ～":"on は「接触・作動」。スイッチをカチッと入れて機械を作動させる場面。→「～をつける」",
-    "turn off ～":"off は「離れて・停止」。スイッチを切って作動状態から離す場面。→「～を消す・止める」",
-    "set up ～":"up は「上へ・完成した状態へ」。材料を立てたり配置したりして、使える状態まで作り上げる場面。→「～を設立する・準備する」",
-    "pick up ～":"up は「上へ」。床などにある物をつまんで持ち上げる場面。→「拾う」。人なら「車などに乗せる」",
-    "carry out ～":"carry は「運ぶ」、out は「外へ」。考えや計画を頭の中だけに置かず、外へ運び出して実際に行う感じ。→「～を実行する」",
-    "bring about ～":"bring は「持ってくる」、about は「周りへ」。ある結果をこちらへ持ってくる感じ。→「～を引き起こす」",
-    "call off ～":"call は「呼ぶ」、off は「離す・取り消す」。予定していたものを呼び戻して、その場から外す感じ。→「～を中止する」",
-    "do away with ～":"do away は「なくしてしまう」というまとまり。邪魔なものをその場から消してしまう場面。→「～を取り除く・廃止する」",
-    "put up with ～":"up は「上へ」、with は「一緒に」。嫌なものを「一緒に抱えて」持ち上げたまま耐える感じ。→「～を我慢する」",
-    "look into ～":"into は「～の中へ」。箱の中をのぞき込むように、問題の中身を詳しく見る場面。→「～を調べる」",
-    "look for ～":"for は「～を求めて」。目的のものを探して目を動かしている場面。→「～を探す」",
-    "ask for ～":"for は「～を求めて」。欲しいものに向かって「ください」と求める場面。→「～を求める」",
-    "depend on ～":"depend は「ぶら下がる」イメージ。on は「～に接して」。何かにぶら下がって支えてもらう場面。→「～に頼る・～しだいである」",
-    "rely on/upon ～":"rely は「頼る」。on は「～に乗って」。何かに体重を預けて支えてもらう場面。→「～に頼る」",
-    "focus on ～":"focus は「焦点を合わせる」。on は「～に向けて」。カメラのピントを一点に合わせる場面。→「～に集中する」",
-    "consist of ～":"consist は「成り立つ」、of は「～から」。全体を開けてみると、その中身が部品として入っている場面。→「～から成り立っている」",
-    "be afraid of ～":"afraid は「怖がっている状態」。of は「その恐怖の対象」を指す。→「～を恐れている」",
-    "be interested in ～":"interested は「興味を向けている状態」。in は「～の中に」。興味がその世界の中に入り込んでいる感じ。→「～に興味がある」",
-    "be good at ～":"good は「うまい・得意」。at は「その対象に向けて」。ある対象に対して力を発揮できる場面。→「～が得意である」",
-    "pay attention to ～":"attention は「注意」。pay は「支払う」。注意というコインを対象に支払う感じ。→「～に注意を払う」",
-    "fall in love with ～":"fall は「落ちる」。in は「～の中へ」。love の中へストンと落ちる場面。→「恋に落ちる・大好きになる」",
-    "make up one's mind":"make は「作る」。mind は「心・考え」。頭の中に結論を作って固定する場面。→「決心する」",
-    "make sense":"sense は「意味・道理」。make＝「作る」なので、バラバラの情報が「意味のある形になる」感じ。→「意味をなす・筋が通る」",
-    "make a mistake":"mistake は「間違い」。make は「作る」。意図せず「間違いを作ってしまう」感じ。→「間違いをする」",
-    "take place":"place は「場所」。take＝「取る・占める」。出来事がその場所を取る＝その場で起こるイメージ。→「起こる・催される」",
-    "keep one's promise/word":"keep は「保つ・守る」。promise/word は「約束」。約束をそのまま守り続ける場面。→「約束を守る」",
-    "get lost":"get は「～の状態になる」。lost は「道を失った」。→「道に迷った状態になる」→「道に迷う」",
-    "be likely to do":"likely は「ありそうな」。未来へ向かう可能性が高い状態。→「…しそうである」",
-    "be about to do":"about to do は「今まさに～へ向かうところ」。行動の直前に立っている場面。→「今にも…しようとしている」",
-    "used to do/be":"昔はその状態・習慣が続いていたが、今はもう違う、という「過去の定位置」を思い浮かべる。→「昔は～したものだった」"
-  };
-
+  // 語源・イメージ解説の方針
+  // ①中心となる動詞そのものの基本イメージ
+  // ②前置詞・副詞などの基本イメージ
+  // ③それらが熟語の中でどう組み合わさるか
+  // ④実際の熟語の意味・使われ方
+  // ※分かりにくい説明や、意味につながらない豆知識は省く。
   const verbImages = {
-    be:["be","「～である・～の状態にある」","その状態にいる"],
-    look:["look","「目を向ける」","目線を向ける"],
-    take:["take","「手に取る」","自分の側へ取る"],
-    give:["give","「手渡す」","相手側へ渡す"],
-    get:["get","「手に入れる・状態になる」","何かを得る／ある状態になる"],
-    go:["go","「行く」","その方向へ進む"],
-    come:["come","「来る」","こちらへ近づく"],
-    put:["put","「置く」","ある場所に置く"],
-    make:["make","「作る」","何かを形にする"],
-    bring:["bring","「持ってくる」","こちらへ運ぶ"],
-    carry:["carry","「運ぶ」","ある場所から別の場所へ運ぶ"],
-    keep:["keep","「保つ・持ち続ける」","そのまま維持する"],
-    hold:["hold","「持つ・支える」","手で支えている"],
-    set:["set","「置く・整える」","位置を決めて整える"],
-    turn:["turn","「向きを変える・回す」","方向を変える"],
-    break:["break","「壊す・破る」","つながりを切る"],
-    call:["call","「呼ぶ」","声をかけて呼び寄せる"],
-    run:["run","「走る・動く」","動き続ける"],
-    stand:["stand","「立つ」","その場に立っている"],
-    fall:["fall","「落ちる」","下へ落ちる"],
-    find:["find","「見つける」","隠れていたものを発見する"],
-    think:["think","「考える」","頭の中で思い浮かべる"],
-    care:["care","「気にかける」","注意を向けて世話する"],
-    ask:["ask","「尋ねる・求める」","相手に求める"],
-    pay:["pay","「支払う」","代わりに何かを差し出す"],
-    play:["play","「演じる・行う」","役割を演じる"],
-    lead:["lead","「導く・先頭に立つ」","前へ導く"],
-    depend:["depend","「ぶら下がる・頼る」","何かに支えてもらう"],
-    rely:["rely","「頼る」","相手に体重を預ける"],
-    focus:["focus","「焦点を合わせる」","一点にピントを合わせる"],
-    refer:["refer","「向ける・言及する」","話題をある対象へ向ける"],
-    consist:["consist","「成り立つ」","いくつかの要素で全体を作る"],
-    prepare:["prepare","「準備する」","先に整えておく"],
-    search:["search","「探す」","目的物を探し回る"],
-    succeed:["succeed","「成功する・後に続く」","目標に届く"],
-    contribute:["contribute","「差し出す・貢献する」","全体のために何かを出す"],
-    prevent:["prevent","「防ぐ」","前に立って進行を止める"],
-    remind:["remind","「思い出させる」","記憶をもう一度呼び戻す"],
-    regard:["regard","「みなす・見る」","あるものを別の見方で見る"],
-    associate:["associate","「結びつける」","2つを一緒に思い浮かべる"],
-    inform:["inform","「知らせる」","情報を相手に渡す"]
+    be:["be","～である・～の状態にある"],
+    look:["look","目を向ける・見る"],
+    take:["take","手に取る・受け取る"],
+    give:["give","与える・手渡す"],
+    get:["get","手に入れる・～の状態になる"],
+    go:["go","行く・進む"],
+    come:["come","来る・近づく"],
+    put:["put","置く"],
+    make:["make","作る・～にする"],
+    bring:["bring","持ってくる・もたらす"],
+    carry:["carry","運ぶ"],
+    keep:["keep","保つ・持ち続ける"],
+    hold:["hold","持つ・支える"],
+    set:["set","置く・整える"],
+    turn:["turn","向きを変える・回す"],
+    break:["break","壊す・破る"],
+    call:["call","呼ぶ"],
+    run:["run","走る・動く"],
+    stand:["stand","立つ"],
+    fall:["fall","落ちる"],
+    find:["find","見つける"],
+    think:["think","考える・思う"],
+    care:["care","気にかける・気にする"],
+    ask:["ask","尋ねる・求める"],
+    pay:["pay","支払う"],
+    play:["play","演じる・行う"],
+    lead:["lead","導く・先頭に立つ"],
+    depend:["depend","頼る・～次第である"],
+    rely:["rely","頼る"],
+    focus:["focus","焦点を合わせる・集中させる"],
+    refer:["refer","向ける・言及する"],
+    consist:["consist","成り立つ"],
+    prepare:["prepare","準備する"],
+    search:["search","探す・捜す"],
+    succeed:["succeed","成功する・後に続く"],
+    contribute:["contribute","差し出す・貢献する"],
+    prevent:["prevent","防ぐ・妨げる"],
+    remind:["remind","思い出させる"],
+    regard:["regard","みなす・見る"],
+    associate:["associate","結びつける"],
+    inform:["inform","知らせる"],
+    suffer:["suffer","苦しむ・被る"],
+    result:["result","結果として生じる"],
+    graduate:["graduate","卒業する"],
+    differ:["differ","異なる"],
+    recover:["recover","回復する・取り戻す"],
+    hear:["hear","聞く"],
+    believe:["believe","信じる"],
+    major:["major","専攻する"],
+    abound:["abound","たくさんある・豊富である"],
+    insist:["insist","強く主張する"],
+    concentrate:["concentrate","集中する"],
+    complain:["complain","不平を言う・訴える"],
+    die:["die","死ぬ"],
+    amount:["amount","総計～になる"],
+    recover:["recover","回復する・立ち直る"]
   };
 
   const prepImages = {
-    to:["to","「～へ・～に」","矢印が対象へ向かう ↗"],
-    of:["of","「～の・～を対象として」","対象とのつながりを示す"],
-    on:["on","「～の上に・～に接して」","何かに乗る／接する"],
-    upon:["upon","「on と同じく接して」","対象の上・接点に乗る"],
-    in:["in","「～の中に・～の状態で」","箱の中に入るイメージ 📦"],
-    at:["at","「～に・～の地点で」","一点をピンポイントで指す 🎯"],
-    for:["for","「～のために・～を求めて」","目的へ向かう矢印 →"],
-    from:["from","「～から」","出発点から離れる ←"],
-    with:["with","「～と一緒に」","2つを一緒にする 🤝"],
-    about:["about","「～について・周りに」","対象の周りをぐるっと見る"],
-    into:["into","「～の中へ」","外から中へ入る ↘"],
-    over:["over","「～を越えて・上を」","山を越えて向こう側へ ⛰️"],
-    through:["through","「～を通り抜けて」","トンネルを端から端まで通る"],
-    off:["off","「離れて・停止して」","くっついた所から離れる"],
-    up:["up","「上へ・完成した状態へ」","下から上へ持ち上げる ↑"],
-    down:["down","「下へ・落ち着いて」","上から下へ下がる ↓"],
-    after:["after","「～の後に・追って」","前を追いかける"],
-    before:["before","「～の前に」","時間・位置の前に立つ"],
-    against:["against","「～に対して・反して」","壁などにぶつかる／逆らう"],
-    by:["by","「～によって・そばに」","そばの人・手段を使う"],
-    along:["along","「～に沿って」","道に沿って進む"],
-    around:["around","「～の周りに」","ぐるっと囲む"],
-    ahead:["ahead","「前方に・先に」","前方の地点を見る ↗"],
-    apart:["apart","「離れて」","2つが離れる ↔"],
-    aside:["aside","「脇へ」","本線から横へよける"],
-    within:["within","「～以内に・内側に」","境界線の内側にいる"],
-    despite:["despite","「～にもかかわらず」","障害があっても進む"]
+    to:["to","～へ・～に","対象へ向かう"],
+    of:["of","～の・～を対象として","対象とのつながりを示す"],
+    on:["on","～の上に・～に接して","対象に乗る・接する"],
+    upon:["upon","～の上に・～に接して","on と同じく対象に接する"],
+    in:["in","～の中に・～の状態で","中に入る"],
+    at:["at","～に・～の地点で","一点に向ける"],
+    for:["for","～のために・～を求めて","目的・対象へ向かう"],
+    from:["from","～から","出発点から離れる"],
+    with:["with","～と一緒に・～を伴って","対象と一緒にする"],
+    about:["about","～について・～の周りに","対象を中心にする"],
+    into:["into","～の中へ","外から中へ入る"],
+    over:["over","～を越えて・～の上を","上を越えて向こう側へ行く"],
+    through:["through","～を通り抜けて","中を通って反対側へ行く"],
+    off:["off","離れて・停止して","接触した状態から離れる"],
+    up:["up","上へ・完成した状態へ","上へ／完成へ向かう"],
+    down:["down","下へ・落ち着いて","下へ／落ち着いた状態へ向かう"],
+    after:["after","～の後に・～を追って","後ろから追う"],
+    before:["before","～の前に","前に位置する"],
+    against:["against","～に対して・反して","対象にぶつかる／逆らう"],
+    by:["by","～によって・～のそばに","手段・そばの対象を示す"],
+    along:["along","～に沿って","線や道に沿って進む"],
+    around:["around","～の周りに","周囲を回る"],
+    within:["within","～以内に・～の内側に","境界の内側にいる"]
   };
 
-  const parts = [];
+  const special = {
+    "look forward to": {verb:"look", prep:"to", middle:"目を向ける先を forward（前）に置く", use:"これから来るものへ目を向けて待つので、「～を楽しみに待つ」という意味で使われる。"},
+    "take care of": {verb:"take", prep:"of", middle:"take（手に取る）＋care（気づかい）で、対象への気づかいを引き受ける", use:"人や物の面倒を引き受ける場面で「～の世話をする／～に気をつける」と使われる。"},
+    "give up": {verb:"give", prep:"up", middle:"give（手渡す）＋up（上へ・手放す方向）で、持っているものを手放す", use:"続けていたことを手放す場面で「～をあきらめる／やめる」と使われる。"},
+    "get over": {verb:"get", prep:"over", middle:"get（～の状態になる）＋over（～を越えて）で、障害の向こう側へ移る", use:"困難や病気などを乗り越えて回復する場面で「～を克服する」と使われる。"},
+    "get through": {verb:"get", prep:"through", middle:"get（～の状態になる）＋through（通り抜けて）で、困難の中を通り抜ける", use:"困難な期間を無事に通り抜ける場面で「～を切り抜ける」と使われる。"},
+    "go through": {verb:"go", prep:"through", middle:"go（行く）＋through（通り抜けて）で、その中を通っていく", use:"経験や苦しい出来事の中を通る場面で「～を経験する」と使われる。"},
+    "come up with": {verb:"come", prep:"up", middle:"come（来る）＋up（上へ）で、考えが頭の中から上がってくる。with は「一緒に」", use:"考えやアイデアが出てきて、それを持ってくる場面で「～を思いつく」と使われる。"},
+    "find out": {verb:"find", prep:"out", middle:"find（見つける）＋out（外へ）で、隠れていた情報を外へ出して見つける", use:"調べて事実や答えを知る場面で「～を知る／見つけ出す」と使われる。"},
+    "figure out": {verb:"figure", prep:"out", middle:"figure（考えて答えを出す）＋out（外へ）で、考えた結果を答えとして外へ出す", use:"問題の答えや意味を考えて分かる場面で「～を理解する／解決する」と使われる。"},
+    "point out": {verb:"point", prep:"out", middle:"point（指す）＋out（外へ）で、大事な点を外に向けて示す", use:"重要なことを相手にはっきり示す場面で「～を指摘する」と使われる。"},
+    "put off": {verb:"put", prep:"off", middle:"put（置く）＋off（離れて）で、予定していたことを遠くへ置く", use:"予定を先へ延ばす場面で「～を延期する」と使われる。"},
+    "put on": {verb:"put", prep:"on", middle:"put（置く）＋on（接して）で、体に何かを置いて接触させる", use:"服などを身につける場面で「～を着る／身につける」と使われる。"},
+    "take off": {verb:"take", prep:"off", middle:"take（手に取る）＋off（離れて）で、身についたものを体から離す", use:"服なら「～を脱ぐ」、飛行機なら地面から離れるので「離陸する」と使われる。"},
+    "turn on": {verb:"turn", prep:"on", middle:"turn（向きを変える・作動させる）＋on（接して）で、作動する側へ切り替える", use:"スイッチなどを作動させる場面で「～をつける」と使われる。"},
+    "turn off": {verb:"turn", prep:"off", middle:"turn（向きを変える）＋off（離れて・停止して）で、作動状態から切り離す", use:"スイッチなどを停止させる場面で「～を消す／止める」と使われる。"},
+    "set up": {verb:"set", prep:"up", middle:"set（置く・整える）＋up（完成した状態へ）で、使える形に整える", use:"設備や組織などを作って使える状態にする場面で「～を設立する／準備する」と使われる。"},
+    "pick up": {verb:"pick", prep:"up", middle:"pick（つまみ取る）＋up（上へ）で、下にあるものをつまんで持ち上げる", use:"物なら「拾う」、人なら「車などに乗せる」という意味で使われる。"},
+    "carry out": {verb:"carry", prep:"out", middle:"carry（運ぶ）＋out（外へ）で、考えや計画を外へ運び出す", use:"計画などを実際の行動に移す場面で「～を実行する」と使われる。"},
+    "bring about": {verb:"bring", prep:"about", middle:"bring（もたらす）＋about（周り・対象へ）で、ある結果をもたらす", use:"変化や結果を起こす場面で「～を引き起こす」と使われる。"},
+    "look into": {verb:"look", prep:"into", middle:"look（見る）＋into（中へ）で、中をのぞき込む", use:"問題の中身を詳しく調べる場面で「～を調べる」と使われる。"},
+    "look for": {verb:"look", prep:"for", middle:"look（目を向ける）＋for（～を求めて）で、目的のものへ目を向けて探す", use:"目的の人・物を探す場面で「～を探す」と使われる。"},
+    "ask for": {verb:"ask", prep:"for", middle:"ask（求める）＋for（～を求めて）で、対象を求める", use:"物や助けなどを相手に求める場面で「～を求める」と使われる。"},
+    "depend on": {verb:"depend", prep:"on", middle:"depend（頼る）＋on（～に接して）で、対象に支えてもらう", use:"何かに頼ったり、条件によって決まったりする場面で「～に頼る／～次第である」と使われる。"},
+    "rely on": {verb:"rely", prep:"on", middle:"rely（頼る）＋on（～に接して）で、対象に支えてもらう", use:"人や物を頼りにする場面で「～に頼る」と使われる。"},
+    "focus on": {verb:"focus", prep:"on", middle:"focus（焦点を合わせる）＋on（～に向けて）で、対象に焦点を合わせる", use:"注意や意識を一つの対象へ集中させる場面で「～に集中する」と使われる。"},
+    "consist of": {verb:"consist", prep:"of", middle:"consist（成り立つ）＋of（～から）で、何が材料・構成要素なのかを示す", use:"全体が何からできているかを説明する場面で「～から成り立っている」と使われる。"},
+    "pay attention to": {verb:"pay", prep:"to", middle:"pay（支払う）＋attention（注意）で、注意を対象へ『支払う』", use:"意識を対象へ向ける場面で「～に注意を払う」と使われる。"},
+    "fall in love with": {verb:"fall", prep:"in", middle:"fall（落ちる）＋in（中へ）で、love の中へ落ちる", use:"誰か・何かに強く心を惹かれる場面で「恋に落ちる／大好きになる」と使われる。"}
+  };
+
   const tokens = clean.split(/\s+/).filter(Boolean);
   const stripped = tokens.map(x => x.replace(/^[.,;:!?()[\]{}]+|[.,;:!?()[\]{}]+$/g,""));
   const lowTokens = stripped.map(x => x.toLowerCase());
 
-  // 特殊説明がある熟語は、その「場面」を主役にする。
-  if (special[lower]) {
+  // be likely to do / be about to do など、to が不定詞になる表現は前置詞として扱わない。
+  const isInfinitiveTo = (i) => lowTokens[i] === "to" && ["do","be","have","go","come","get","make","take","see","know","say","tell","use","keep","give","find","learn","help","try","work","live","look","become","feel","become"].includes(lowTokens[i+1]);
+
+  // 熟語の先頭にある中心動詞を優先して探す。
+  let verb = null;
+  let verbIndex = -1;
+  for (let i=0;i<lowTokens.length;i++) {
+    if (verbImages[lowTokens[i]]) { verb=lowTokens[i]; verbIndex=i; break; }
+  }
+
+  // special にない語でも、既知の動詞＋前置詞なら4段構成で説明する。
+  const prepKeys = Object.keys(prepImages);
+  let prep = null;
+  let prepIndex = -1;
+  for (let i=Math.max(0,verbIndex+1);i<lowTokens.length;i++) {
+    if (prepKeys.includes(lowTokens[i]) && !isInfinitiveTo(i)) { prep=lowTokens[i]; prepIndex=i; break; }
+  }
+
+  const sp = special[lower] || special[lower.replace(/\s*\/\s*upon/g," on").replace(/\s*\/\s*u?pon/g," on")];
+  const actualVerb = sp?.verb || verb;
+  const actualPrep = sp?.prep || prep;
+  const parts = [];
+
+  if (actualVerb && verbImages[actualVerb]) {
+    const v = verbImages[actualVerb];
+    parts.push({label:"① 動詞そのもの", text:`${v[0]} ＝「${v[1]}」`});
+  }
+
+  if (actualPrep && prepImages[actualPrep]) {
+    const p = prepImages[actualPrep];
+    parts.push({label:"② 前置詞・副詞", text:`${p[0]} ＝「${p[1]}」。${p[2]}というイメージ。`});
+  }
+
+  if (sp) {
+    parts.push({label:"③ 熟語での組み合わせ", text:sp.middle});
+    parts.push({label:"④ 実際の使われ方", text:sp.use});
     return {
-      summary: special[lower],
-      parts: []
+      summary:`${clean} は、${actualVerb ? verbImages[actualVerb][1] : "中心語の意味"} に ${actualPrep && prepImages[actualPrep] ? prepImages[actualPrep][1] : "語の意味"} が加わった表現。熟語では「${ja}」という意味で使われる。`,
+      parts
     };
   }
 
-  // 動詞＋前置詞のときは、単語の辞書訳ではなく「動き」で説明。
-  let verbIndex = -1;
-  for (let i=0;i<lowTokens.length;i++){
-    if (verbImages[lowTokens[i]]) { verbIndex=i; break; }
+  if (actualVerb && actualPrep) {
+    const v = verbImages[actualVerb];
+    const p = prepImages[actualPrep];
+    const meaning = ja.replace(/\s+/g," ").trim();
+    parts.push({label:"③ 熟語での組み合わせ", text:`${actualVerb} の「${v[1]}」を、${actualPrep} の「${p[1]}」の方向・関係に合わせると、「${meaning}」につながる。`});
+    parts.push({label:"④ 実際の使われ方", text:`${clean} は、${meaning} という意味の熟語として使われる。`});
+    return {
+      summary:`${actualVerb} の基本の意味を残したまま、${actualPrep} が対象との関係や方向を加えて、熟語全体の意味になります。`,
+      parts
+    };
   }
 
-  if (verbIndex >= 0) {
-    const v = lowTokens[verbIndex];
-    const vi = verbImages[v];
-    parts.push({label:"① 動詞の動き", text:`${vi[0]}＝${vi[1]}。${vi[2]}。`});
-  }
-
-  // 前置詞を最初から順に拾う（to do の to は不定詞なので除外）。
-  const prepKeys = Object.keys(prepImages);
-  for (let i=0;i<lowTokens.length;i++){
-    const t=lowTokens[i];
-    if (prepKeys.includes(t) && !(t==="to" && ["do","be"].includes(lowTokens[i+1]))) {
-      const p=prepImages[t];
-      parts.push({label:"② 前置詞のイメージ", text:`${p[0]}＝${p[1]}。${p[2]}。`});
-      // 最重要の前置詞を1つだけ主役にして、説明が長くなりすぎないようにする。
-      break;
-    }
-  }
-
-  // 形容詞・名詞などの中心語。
-  const ignore = new Set(["a","an","the","of","to","on","in","at","for","from","with","about","and","or","as","by","up","down"]);
-  const other = stripped.filter((x,i)=>!ignore.has(x.toLowerCase()) && i!==verbIndex);
-  if (other.length){
-    const center = other.slice(0,3).map(x=>`「${x}」`).join("＋");
-    parts.push({label:"③ 中心となる語", text:`${center} が表す内容を、上の「動き・位置」に乗せる。`});
-  }
-
+  // 動詞＋前置詞でない表現は、無理に語源を作らず簡潔に説明する。
   const meaning = ja.replace(/\s+/g," ").trim();
-  let summary = parts.length
-    ? `まず英語を「動きのある場面」として想像しよう。${parts.map(p=>p.text).join(" → ")} → 日本語の「${meaning}」につながる。`
-    : `「${clean}」を単語ごとに直訳するより、ひとつの場面として想像すると覚えやすい。意味は「${meaning}」。`;
+  if (verb && verbImages[verb]) {
+    parts.push({label:"① 中心となる動詞", text:`${verb} ＝「${verbImages[verb][1]}」`});
+    parts.push({label:"② 熟語での使われ方", text:`この熟語では、その動詞の基本イメージをもとに「${meaning}」という意味で使われる。`});
+    return {summary:`中心となる ${verb} の意味を押さえて、「${meaning}」につなげて覚えよう。`,parts};
+  }
 
-  // 語源（歴史）とイメージ（記憶法）を混同しないよう明示。
-  summary = `💡 覚え方：${summary}`;
-
-  return {summary, parts};
+  return {
+    summary:`「${clean}」は単語を無理に直訳するより、熟語全体をひとまとまりとして「${meaning}」と覚えるのが分かりやすい。`,
+    parts:[]
+  };
 }
+
 function save(){localStorage.setItem('jukugo_stats_v4',JSON.stringify(stats))}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
