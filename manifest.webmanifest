@@ -1,23 +1,25 @@
 {
+  "id": "/idiom-app/",
   "name": "熟語AI｜1000語トレーナー",
   "short_name": "熟語AI",
   "description": "英熟語4択・空所補充・辞書・苦手復習・学習記録",
   "lang": "ja",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/idiom-app/",
+  "scope": "/idiom-app/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "theme_color": "#111827",
   "background_color": "#f5f7fb",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "/idiom-app/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "/idiom-app/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
