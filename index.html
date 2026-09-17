@@ -277,6 +277,7 @@ function etymologyGuide(w){
   };
 
   const special = {
+    "before one knows it": {verb:null, prep:"before", middle:"before（～の前に）＋one knows it（人がそれを知る・気づく）で、「人がそれを知る前」という時間の位置を表す。つまり、ある出来事が「気づくより前に起こってしまう」というイメージ。", use:"気づく間もないほど短い時間で何かが起こる場面で、「あっという間に」という意味で使われる。"},
     "look forward to": {verb:"look", prep:"to", middle:"目を向ける先を forward（前）に置く", use:"これから来るものへ目を向けて待つので、「～を楽しみに待つ」という意味で使われる。"},
     "take care of": {verb:"take", prep:"of", middle:"take（手に取る）＋care（気づかい）で、対象への気づかいを引き受ける", use:"人や物の面倒を引き受ける場面で「～の世話をする／～に気をつける」と使われる。"},
     "give up": {verb:"give", prep:"up", middle:"give（手渡す）＋up（上へ・手放す方向）で、持っているものを手放す", use:"続けていたことを手放す場面で「～をあきらめる／やめる」と使われる。"},
@@ -357,7 +358,7 @@ function etymologyGuide(w){
     const v = verbImages[actualVerb];
     const p = prepImages[actualPrep];
     const meaning = ja.replace(/\s+/g," ").trim();
-    parts.push({label:"③ 熟語での組み合わせ", text:`${actualVerb} の「${v[1]}」を、${actualPrep} の「${p[1]}」の方向・関係に合わせると、「${meaning}」につながる。`});
+    parts.push({label:"③ 熟語での組み合わせ", text:`${actualVerb} が表す「${v[1]}」という動き・状態を、${actualPrep} が示す「${p[1]}」という位置・方向に重ねることで、「${meaning}」につながる。`});
     parts.push({label:"④ 実際の使われ方", text:`${clean} は、${meaning} という意味の熟語として使われる。`});
     return {
       summary:`${actualVerb} の基本の意味を残したまま、${actualPrep} が対象との関係や方向を加えて、熟語全体の意味になります。`,
