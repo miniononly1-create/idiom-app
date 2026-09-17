@@ -44,11 +44,11 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
 .weakDot{background:#ef4444}.solvedDot{background:#22c55e}.unseenDot{background:#cbd5e1}
 .statusNote{font-size:12px;color:var(--muted);line-height:1.6;background:#f8fafc;border-radius:10px;padding:9px}
 .wordStatsTableWrap{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:520px}
-.wordStatsTable{width:100%;border-collapse:collapse;font-size:13px;min-width:470px}
+.wordStatsTable{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
 .wordStatsTable th,.wordStatsTable td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
 .wordStatsTable th{position:sticky;top:0;background:#f8fafc;z-index:1}
 .wordStatsTable td:nth-child(2),.wordStatsTable td:nth-child(3){text-align:center;width:62px}
-.wordStatsTable td:nth-child(4){width:90px}
+.wordStatsTable td:nth-child(4){text-align:center;width:80px}.wordStatsTable td:nth-child(5){width:90px}
 .statBadge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:700}
 .badgeWeak{background:#fee2e2;color:#991b1b}.badgeSolved{background:#dcfce7;color:#166534}.badgeUnseen{background:#e5e7eb;color:#475569}
 .mistakeCount{font-weight:800;color:#b91c1c}
@@ -56,6 +56,12 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
  .statusDonut{width:155px;height:155px}.statusDonut::after{inset:31px}
  .statusChartWrap{gap:18px}
 }
+.statusFilters{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 4px}
+.statusFilters button{padding:9px 11px;font-size:13px;background:#f3f4f6;border:1px solid #e5e7eb}
+.statusFilters button.active{background:#111827;color:#fff;border-color:#111827}
+.rateGood{font-weight:800;color:#166534}
+.rateBad{font-weight:800;color:#b91c1c}
+.rateNone{color:#64748b}
 </style>
 
 <style>
@@ -122,12 +128,19 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
   <div class="statusChartWrap">
     <div class="statusDonut" id="statusDonut" aria-label="学習状況の円グラフ"></div>
     <div class="statusLegend">
-      <div class="legendRow"><span class="legendDot weakDot"></span><b>苦手</b><span id="chartWeak">0語</span></div>
-      <div class="legendRow"><span class="legendDot solvedDot"></span><b>解けた</b><span id="chartSolved">0語</span></div>
+      <div class="legendRow"><span class="legendDot weakDot"></span><b>間違えた</b><span id="chartWeak">0語</span></div>
+      <div class="legendRow"><span class="legendDot solvedDot"></span><b>正解</b><span id="chartSolved">0語</span></div>
       <div class="legendRow"><span class="legendDot unseenDot"></span><b>未出題</b><span id="chartUnseen">0語</span></div>
     </div>
   </div>
-  <div class="statusNote">※「苦手」＝不正解数が正解数より多いもの。「解けた」＝1回以上出題され、苦手ではないもの。</div>
+  <div class="statusFilters">
+    <button type="button" class="active" data-status-filter="all" onclick="setStatusFilter('all')">すべて</button>
+    <button type="button" data-status-filter="wrong" onclick="setStatusFilter('wrong')">❌ 間違えた</button>
+    <button type="button" data-status-filter="wrong2" onclick="setStatusFilter('wrong2')">🔥 2回以上</button>
+    <button type="button" data-status-filter="solved" onclick="setStatusFilter('solved')">✅ 正解</button>
+    <button type="button" data-status-filter="unseen" onclick="setStatusFilter('unseen')">⚪ 未出題</button>
+  </div>
+  <div class="statusNote">※「間違えた」＝不正解が1回以上。「正解」＝出題済みで不正解0回。「未出題」＝まだ一度も出題していないもの。</div>
 </div>
 
 <div class="card">
@@ -146,7 +159,7 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
   <p id="wordListInfo" class="small" style="margin:8px 0"></p>
   <div class="wordStatsTableWrap">
     <table class="wordStatsTable">
-      <thead><tr><th>熟語</th><th>正解</th><th>不正解</th><th>状態</th></tr></thead>
+      <thead><tr><th>熟語</th><th>正解</th><th>不正解</th><th>正答率</th><th>状態</th></tr></thead>
       <tbody id="wordStatsBody"></tbody>
     </table>
   </div>
@@ -617,9 +630,9 @@ function renderDict(){
  document.getElementById('dictList').innerHTML=a.map(w=>`<div class="item"><b>${esc(w.en)}</b><br>${esc(w.ja)}</div>`).join('')||'<p class="small">見つかりません。</p>';
 }
 function getLearningStatus(w){
- let s=stats[w.en]||{}, c=s.c||0, wrong=s.w||0, seen=s.seen||0;
+ let s=stats[w.en]||{}, wrong=s.w||0, seen=s.seen||0;
  if(!seen) return 'unseen';
- return wrong>c?'weak':'solved';
+ return wrong>0?'weak':'solved';
 }
 function updateData(){
  const counts={weak:0,solved:0,unseen:0};
@@ -633,24 +646,43 @@ function updateData(){
  if(donut) donut.style.background=`conic-gradient(#ef4444 0deg ${wdeg}deg,#22c55e ${wdeg}deg ${sdeg}deg,#cbd5e1 ${sdeg}deg 360deg)`;
  renderWordStats();
 }
+function setStatusFilter(filter){
+ const select=document.getElementById('wordListFilter');
+ if(select){
+   select.value = filter==='wrong' ? 'wrong1' : filter;
+   renderWordStats();
+ }
+ document.querySelectorAll('[data-status-filter]').forEach(btn=>{
+   btn.classList.toggle('active',btn.dataset.statusFilter===filter);
+ });
+}
 function renderWordStats(){
  const body=document.getElementById('wordStatsBody'); if(!body)return;
  const filter=document.getElementById('wordListFilter')?.value||'all';
  const search=(document.getElementById('wordListSearch')?.value||'').toLowerCase().trim();
  let list=words.map(w=>{
-   const s=stats[w.en]||{};
-   return {w,c:s.c||0,wrong:s.w||0,seen:s.seen||0,status:getLearningStatus(w)};
+   const st=stats[w.en]||{};
+   return {w,c:st.c||0,wrong:st.w||0,seen:st.seen||0,status:getLearningStatus(w)};
  });
  if(filter==='wrong2') list=list.filter(x=>x.wrong>=2);
  else if(filter==='wrong1') list=list.filter(x=>x.wrong>=1);
+ else if(filter==='solved') list=list.filter(x=>x.status==='solved');
  else if(filter==='unseen') list=list.filter(x=>x.status==='unseen');
  if(search) list=list.filter(x=>(x.w.en+' '+x.w.ja).toLowerCase().includes(search));
- list.sort((a,b)=>b.wrong-a.wrong||a.c-b.c||a.w.en.localeCompare(b.w.en));
- document.getElementById('wordListInfo').textContent=`${list.length}語を表示。正解✓・不正解✕の回数は累計です。`;
+ list.sort((a,b)=>{
+   if(b.wrong!==a.wrong) return b.wrong-a.wrong;
+   const ar=a.c+a.wrong?a.c/(a.c+a.wrong):-1;
+   const br=b.c+b.wrong?b.c/(b.c+b.wrong):-1;
+   return ar-br || a.w.en.localeCompare(b.w.en);
+ });
+ document.getElementById('wordListInfo').textContent=`${list.length}語を表示。間違えた回数が多い順。正答率も表示しています。`;
  body.innerHTML=list.map(x=>{
-   const badge=x.status==='weak'?'<span class="statBadge badgeWeak">苦手</span>':x.status==='solved'?'<span class="statBadge badgeSolved">解けた</span>':'<span class="statBadge badgeUnseen">未出題</span>';
-   return `<tr><td><b>${esc(x.w.en)}</b><br><span class="small">${esc(x.w.ja)}</span></td><td>✓ ${x.c}</td><td class="${x.wrong>=1?'mistakeCount':''}">✕ ${x.wrong}</td><td>${badge}</td></tr>`;
- }).join('')||'<tr><td colspan="4" class="small" style="text-align:center">該当する熟語はありません。</td></tr>';
+   const total=x.c+x.wrong;
+   const rate=total?Math.round(x.c/total*1000)/10:null;
+   const rateHtml=rate===null?'<span class="rateNone">—</span>':`<span class="${rate<50?'rateBad':'rateGood'}">${rate}%</span>`;
+   const badge=x.status==='weak'?'<span class="statBadge badgeWeak">間違えた</span>':x.status==='solved'?'<span class="statBadge badgeSolved">正解</span>':'<span class="statBadge badgeUnseen">未出題</span>';
+   return `<tr><td><b>${esc(x.w.en)}</b><br><span class="small">${esc(x.w.ja)}</span></td><td>✓ ${x.c}</td><td class="${x.wrong>=1?'mistakeCount':''}">✕ ${x.wrong}</td><td>${rateHtml}</td><td>${badge}</td></tr>`;
+ }).join('')||'<tr><td colspan="5" class="small" style="text-align:center">該当する熟語はありません。</td></tr>';
 }
 function exportProgress(){
  let rows=[['英熟語','正解数','不正解数','出題回数','最終学習']];
