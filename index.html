@@ -70,7 +70,7 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
 <section id="quiz" class="hidden"><div class="card">
 <div class="small" id="count"></div><div class="word" id="qword"></div><div class="hint" id="qhint"></div>
 <div class="choices" id="choices"></div>
-<div id="fillArea" class="hidden"><div id="fillSentence" class="fillSentence"></div><input id="fillInput" type="text" autocomplete="off" autocapitalize="none" placeholder="空欄に入る熟語を入力"><button id="fillSubmit" class="primary" style="width:100%;margin-top:9px" onclick="submitFill()">答える</button><div id="fillHint" class="small" style="margin-top:8px">ヒント：熟語のスペルを入力してください</div></div>
+<div id="fillArea" class="hidden"><div id="fillSentence" class="fillSentence"></div><div id="fillChoices"></div><div id="fillHint" class="small" style="margin-top:8px">ヒント：空欄に入る熟語を4択から選んでください</div></div>
 <div id="explain" class="explain hidden"></div>
 <button id="next" class="primary" style="width:100%;margin-top:10px" onclick="nextQ()">次の問題</button>
 </div></section>
@@ -417,15 +417,18 @@ function draw(){
  answered=false;let w=questions[qi];
  document.getElementById('count').textContent=`${qi+1} / ${questions.length}`;
  document.getElementById('qword').textContent=mode==='fill'?'✏️ 空所補充':(mode==='jaen'?w.ja:w.en);
- document.getElementById('qhint').textContent=mode==='fill'?'英文の空欄に入る熟語を入力':'英語から日本語を選択';
+ document.getElementById('qhint').textContent=mode==='fill'?'英文の空欄に入る熟語を4択から選択':'英語から日本語を選択';
  document.getElementById('choices').innerHTML='';
  document.getElementById('fillArea').classList.toggle('hidden',mode!=='fill');
+ document.getElementById('fillChoices').innerHTML='';
  if(mode==='fill'){
    const key=getFillKey(w), raw=FILL_SENTENCES[key][Math.floor(Math.random()*FILL_SENTENCES[key].length)];
    fillSentence=raw; fillAnswer=key.replace(/[～~]/g,'').trim();
    document.getElementById('fillSentence').innerHTML=esc(raw).replace(/___/g,'<span class="blank">　　　</span>');
-   document.getElementById('fillInput').value='';document.getElementById('fillInput').disabled=false;document.getElementById('fillSubmit').disabled=false;
-   setTimeout(()=>document.getElementById('fillInput').focus(),50);
+   const distractors=shuffle(words.filter(x=>x.en!==w.en && FILL_SENTENCES[x.en]).map(x=>x.en.replace(/[～~]/g,'').trim())).filter((v,i,a)=>v!==fillAnswer && a.indexOf(v)===i).slice(0,3);
+   const vals=shuffle([fillAnswer,...distractors]);
+   document.getElementById('fillChoices').innerHTML=vals.map(v=>`<button type="button" data-answer="${esc(v)}">${esc(v)}</button>`).join('');
+   document.querySelectorAll('#fillChoices button[data-answer]').forEach(btn=>btn.addEventListener('click',()=>answer(btn,btn.dataset.answer,false,normalizeFill(btn.dataset.answer)===normalizeFill(fillAnswer))));
  }else{
    let pool=words.filter(x=>x.en!==w.en);
    let vals=mode==='jaen'?[w.en,...shuffle(pool.map(x=>x.en)).slice(0,3)]:[w.ja,...shuffle(pool.map(x=>x.ja)).slice(0,3)];
@@ -436,16 +439,12 @@ function draw(){
  }
  document.getElementById('explain').classList.add('hidden');
 }
-function submitFill(){
- if(answered)return;
- const w=questions[qi], input=document.getElementById('fillInput').value, ok=acceptableFill(w,input);
- answer(null,input,false,ok);
-}
 function answer(btn,val,isUnknown=false,forcedOk=null){
  if(answered)return;answered=true;
  let w=questions[qi],ok=forcedOk===null?(!isUnknown&&(mode==='jaen'?val===w.en:val===w.ja)):forcedOk;
  stats[w.en]=stats[w.en]||{c:0,w:0,seen:0,last:0};stats[w.en][ok?'c':'w']++;stats[w.en].seen++;stats[w.en].last=Date.now();save();
- if(btn)btn.classList.add(ok?'ok':'ng');
+ if(btn)btn.classList.add(ok?'correct':'wrong');
+ if(mode==='fill' && !ok){document.querySelectorAll('#fillChoices button[data-answer]').forEach(b=>{if(normalizeFill(b.dataset.answer)===normalizeFill(fillAnswer))b.classList.add('correct')})}
  const guide=etymologyGuide(w);
  const partsHtml=guide.parts.length?`<div class="etymologyParts">${guide.parts.map(p=>`<div class="etymologyPart"><b>${esc(p.label)}</b>${esc(p.text)}</div>`).join('')}</div>`:'';
  let sentence=mode==='fill'?`<div class="fillSentence ${ok?'fillCorrect':'fillWrong'}">${esc(fillSentence).replace(/___/g,`<b>${esc(w.en.replace(/[～~]/g,'').trim())}</b>`)}</div>`:'';
@@ -453,7 +452,7 @@ function answer(btn,val,isUnknown=false,forcedOk=null){
  e.innerHTML=sentence+`<b>${ok?'正解！':'不正解'}</b>${mode==='fill'&&val?`<br>あなたの回答：<b>${esc(val)}</b>`:''}${isUnknown?'（「わからない」を選択）':''}<br><b>${esc(w.en)}</b> = ${esc(w.ja)}<div class="etymology"><b>📖 語源・イメージ（場面で覚える）</b><br>${esc(guide.summary)}${partsHtml}</div><br><b>復習ポイント</b><br>${ok?'英文の場面ごと覚えると、実際の読解・会話でも出てきやすくなります。':'正解を確認して、英文全体の場面と一緒に熟語を覚えましょう。'}`;
  e.classList.remove('hidden');
  document.querySelectorAll('#choices button').forEach(b=>b.disabled=true);
- document.getElementById('fillInput').disabled=true;document.getElementById('fillSubmit').disabled=true;
+ const fillInput=document.getElementById('fillInput'); if(fillInput)fillInput.disabled=true; const fillSubmit=document.getElementById('fillSubmit'); if(fillSubmit)fillSubmit.disabled=true;
  update();
 }
 function nextQ(){if(qi<questions.length-1){qi++;draw()}else{alert('10問終了！');show('home')}}
