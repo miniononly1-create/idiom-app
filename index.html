@@ -33,6 +33,29 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
 .etymologyPart b{display:inline-block;margin-right:6px}
 .unknown{background:#fff7ed!important;border:1px solid #fed7aa!important}
 .fillSentence{font-size:20px;line-height:1.9;background:#f9fafb;border-radius:14px;padding:18px;margin:12px 0 10px;font-weight:650}.blank{display:inline-block;min-width:90px;border-bottom:3px solid #9ca3af;margin:0 4px}.fillCorrect{background:#dcfce7}.fillWrong{background:#fee2e2}.modeBadge{display:inline-block;padding:4px 9px;border-radius:999px;background:#eef2ff;font-size:12px;margin-bottom:5px}
+.rangeInputs label{flex:1}
+.rangeInputs input{background:#fff}
+.statusChartWrap{display:flex;align-items:center;justify-content:center;gap:28px;margin:18px 0 10px;flex-wrap:wrap}
+.statusDonut{width:180px;height:180px;border-radius:50%;background:conic-gradient(#ef4444 0deg,#ef4444 0deg,#22c55e 0deg,#22c55e 0deg,#cbd5e1 0deg,#cbd5e1 360deg);position:relative;flex:0 0 auto}
+.statusDonut::after{content:"";position:absolute;inset:36px;background:#fff;border-radius:50%}
+.statusLegend{min-width:170px;display:grid;gap:11px}
+.legendRow{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;font-size:14px}
+.legendDot{width:11px;height:11px;border-radius:50%;display:block}
+.weakDot{background:#ef4444}.solvedDot{background:#22c55e}.unseenDot{background:#cbd5e1}
+.statusNote{font-size:12px;color:var(--muted);line-height:1.6;background:#f8fafc;border-radius:10px;padding:9px}
+.wordStatsTableWrap{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:520px}
+.wordStatsTable{width:100%;border-collapse:collapse;font-size:13px;min-width:470px}
+.wordStatsTable th,.wordStatsTable td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.wordStatsTable th{position:sticky;top:0;background:#f8fafc;z-index:1}
+.wordStatsTable td:nth-child(2),.wordStatsTable td:nth-child(3){text-align:center;width:62px}
+.wordStatsTable td:nth-child(4){width:90px}
+.statBadge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:700}
+.badgeWeak{background:#fee2e2;color:#991b1b}.badgeSolved{background:#dcfce7;color:#166534}.badgeUnseen{background:#e5e7eb;color:#475569}
+.mistakeCount{font-weight:800;color:#b91c1c}
+@media(max-width:520px){
+ .statusDonut{width:155px;height:155px}.statusDonut::after{inset:31px}
+ .statusChartWrap{gap:18px}
+}
 </style>
 
 <style>
@@ -53,6 +76,20 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
 <div class="stat"><div class="num" id="weak">0</div><div class="small">苦手</div></div>
 </div></div>
 <div class="card"><h2>今日の学習</h2><p id="status" class="small"></p>
+<div class="card" style="margin:0 0 12px;padding:14px;background:#f8fafc;border:1px solid #e5e7eb;box-shadow:none">
+  <b>📚 出題範囲</b>
+  <div style="margin-top:8px">
+    <select id="rangeMode" onchange="toggleRangeInputs()" style="width:100%;padding:11px;border:1px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff">
+      <option value="all">指定しない（1〜1884）</option>
+      <option value="custom">番号で指定する</option>
+    </select>
+  </div>
+  <div id="rangeInputs" class="row" style="margin-top:8px;display:none">
+    <label class="small">開始番号<br><input id="rangeStart" type="number" min="1" max="1884" value="1" style="width:100%;padding:11px;border:1px solid #d1d5db;border-radius:12px;font-size:16px"></label>
+    <label class="small">終了番号<br><input id="rangeEnd" type="number" min="1" max="1884" value="1884" style="width:100%;padding:11px;border:1px solid #d1d5db;border-radius:12px;font-size:16px"></label>
+  </div>
+  <p id="rangeStatus" class="small" style="margin:8px 0 0"></p>
+</div>
 <div class="row"><button class="primary" onclick="start('enja')">英→日 10問</button><button onclick="start('jaen')">日→英 10問</button></div>
 <div class="row" style="margin-top:8px"><button onclick="startFill()">✏️ 空所補充 10問</button><button onclick="startFill(true)">✏️ 空所・苦手</button></div>
 <div class="row" style="margin-top:8px"><button onclick="start('review')">苦手復習</button><button onclick="start('random')">ランダム</button></div></div>
@@ -78,9 +115,49 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
 <section id="dict" class="hidden"><div class="card"><h2>熟語辞書</h2>
 <input id="search" type="text" placeholder="熟語・意味を検索" oninput="renderDict()"><div id="dictList"></div></div></section>
 
-<section id="data" class="hidden"><div class="card"><h2>データ管理</h2>
-<p id="dataInfo" class="small"></p><button onclick="exportProgress()" style="width:100%">学習記録を書き出す</button>
-<button class="danger" style="width:100%;margin-top:8px" onclick="resetProgress()">学習記録をリセット</button></div></section>
+<section id="data" class="hidden">
+<div class="card">
+  <h2>📊 学習状況</h2>
+  <p id="dataInfo" class="small"></p>
+  <div class="statusChartWrap">
+    <div class="statusDonut" id="statusDonut" aria-label="学習状況の円グラフ"></div>
+    <div class="statusLegend">
+      <div class="legendRow"><span class="legendDot weakDot"></span><b>苦手</b><span id="chartWeak">0語</span></div>
+      <div class="legendRow"><span class="legendDot solvedDot"></span><b>解けた</b><span id="chartSolved">0語</span></div>
+      <div class="legendRow"><span class="legendDot unseenDot"></span><b>未出題</b><span id="chartUnseen">0語</span></div>
+    </div>
+  </div>
+  <div class="statusNote">※「苦手」＝不正解数が正解数より多いもの。「解けた」＝1回以上出題され、苦手ではないもの。</div>
+</div>
+
+<div class="card">
+  <div class="row" style="align-items:center">
+    <div style="flex:1"><h2 style="margin:0">📋 熟語一覧</h2></div>
+    <div style="flex:1">
+      <select id="wordListFilter" onchange="renderWordStats()" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:11px;font-size:14px;background:#fff">
+        <option value="all">すべて</option>
+        <option value="wrong2">2回以上間違えた</option>
+        <option value="wrong1">1回以上間違えた</option>
+        <option value="unseen">未出題</option>
+      </select>
+    </div>
+  </div>
+  <input id="wordListSearch" type="text" placeholder="熟語・意味を検索" oninput="renderWordStats()" style="margin-top:10px">
+  <p id="wordListInfo" class="small" style="margin:8px 0"></p>
+  <div class="wordStatsTableWrap">
+    <table class="wordStatsTable">
+      <thead><tr><th>熟語</th><th>正解</th><th>不正解</th><th>状態</th></tr></thead>
+      <tbody id="wordStatsBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3>💾 データ管理</h3>
+  <button onclick="exportProgress()" style="width:100%">学習記録を書き出す</button>
+  <button class="danger" style="width:100%;margin-top:8px" onclick="resetProgress()">学習記録をリセット</button>
+</div>
+</section>
 </main>
 <nav class="tabs"><button onclick="show('home')">ホーム</button><button onclick="show('quiz')">クイズ</button><button onclick="show('dict')">辞書</button><button onclick="show('data')">データ</button></nav>
 
@@ -383,6 +460,61 @@ function etymologyGuide(w){
 function save(){localStorage.setItem('jukugo_stats_v4',JSON.stringify(stats))}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
+
+function getQuizPool(){
+  const modeEl=document.getElementById('rangeMode');
+  const mode=modeEl?modeEl.value:'all';
+  if(mode!=='custom') return words.slice();
+
+  const start=Number(document.getElementById('rangeStart')?.value);
+  const end=Number(document.getElementById('rangeEnd')?.value);
+  if(!Number.isInteger(start)||!Number.isInteger(end)||start<1||end>words.length||start>end){
+    alert(`出題範囲は1〜${words.length}番の中で、開始番号≦終了番号になるように指定してください。`);
+    return null;
+  }
+  return words.slice(start-1,end);
+}
+
+function toggleRangeInputs(){
+  const custom=document.getElementById('rangeMode')?.value==='custom';
+  const box=document.getElementById('rangeInputs');
+  if(box) box.style.display=custom?'flex':'none';
+  updateRangeStatus();
+  try{
+    localStorage.setItem('jukugo_range_mode',custom?'custom':'all');
+  }catch(e){}
+}
+
+function updateRangeStatus(){
+  const el=document.getElementById('rangeStatus');
+  if(!el)return;
+  const mode=document.getElementById('rangeMode')?.value||'all';
+  if(mode!=='custom'){
+    el.textContent=`現在：1〜${words.length}番（全範囲）`;
+    return;
+  }
+  const s=Number(document.getElementById('rangeStart')?.value);
+  const e=Number(document.getElementById('rangeEnd')?.value);
+  if(Number.isInteger(s)&&Number.isInteger(e)&&s>=1&&e<=words.length&&s<=e){
+    el.textContent=`現在：${s}〜${e}番（${e-s+1}語）`;
+  }else{
+    el.textContent=`1〜${words.length}番で指定してください。`;
+  }
+}
+
+function restoreRangeSettings(){
+  const mode=localStorage.getItem('jukugo_range_mode')||'all';
+  const rm=document.getElementById('rangeMode');
+  if(rm) rm.value=mode==='custom'?'custom':'all';
+  const rs=document.getElementById('rangeStart');
+  const re=document.getElementById('rangeEnd');
+  if(rs) rs.value=localStorage.getItem('jukugo_range_start')||'1';
+  if(re) re.value=localStorage.getItem('jukugo_range_end')||String(words.length);
+  if(rs) rs.addEventListener('input',()=>{localStorage.setItem('jukugo_range_start',rs.value);updateRangeStatus()});
+  if(re) re.addEventListener('input',()=>{localStorage.setItem('jukugo_range_end',re.value);updateRangeStatus()});
+  toggleRangeInputs();
+}
+
 function show(id){['home','quiz','dict','data'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById(id).classList.remove('hidden');if(id==='dict')renderDict();if(id==='data')updateData();update()}
 function update(){
  document.getElementById('total').textContent=words.length;
@@ -392,14 +524,20 @@ function update(){
 }
 function start(m){
  if(!words.length)return alert('データがありません。');
- mode=m;let pool=m==='review'?words.filter(w=>(stats[w.en]?.w||0)>(stats[w.en]?.c||0)):words;
- if(m==='review'&&!pool.length)return alert('現在、苦手判定の熟語はありません。');
+ const basePool=getQuizPool();
+ if(!basePool)return;
+ mode=m;
+ let pool=m==='review'?basePool.filter(w=>(stats[w.en]?.w||0)>(stats[w.en]?.c||0)):basePool;
+ if(m==='review'&&!pool.length)return alert('現在、指定範囲内に苦手判定の熟語はありません。');
+ if(!pool.length)return alert('指定した範囲に熟語がありません。');
  questions=shuffle([...pool]).slice(0,10);qi=0;show('quiz');draw();
 }
 function startFill(weak=false){
+ const basePool=getQuizPool();
+ if(!basePool)return;
  mode='fill';
- let pool=weak?words.filter(w=>FILL_SENTENCES[w.en]&&(stats[w.en]?.w||0)>(stats[w.en]?.c||0)):words.filter(w=>FILL_SENTENCES[w.en]);
- if(!pool.length)return alert(weak?'空所補充の苦手問題はありません。':'空所補充データがありません。');
+ let pool=weak?basePool.filter(w=>FILL_SENTENCES[w.en]&&(stats[w.en]?.w||0)>(stats[w.en]?.c||0)):basePool.filter(w=>FILL_SENTENCES[w.en]);
+ if(!pool.length)return alert(weak?'指定範囲内に空所補充の苦手問題はありません。':'指定範囲内に空所補充データがありません。');
  questions=shuffle([...pool]).slice(0,10);qi=0;show('quiz');draw();
 }
 function getFillKey(w){return Object.keys(FILL_SENTENCES).find(k=>k===w.en)||null}
@@ -470,6 +608,7 @@ function answer(btn,val,isUnknown=false,forcedOk=null){
  document.querySelectorAll('#choices button').forEach(b=>b.disabled=true);
  const fillInput=document.getElementById('fillInput'); if(fillInput)fillInput.disabled=true; const fillSubmit=document.getElementById('fillSubmit'); if(fillSubmit)fillSubmit.disabled=true;
  update();
+ updateData();
 }
 function nextQ(){if(qi<questions.length-1){qi++;draw()}else{alert('10問終了！');show('home')}}
 function renderDict(){
@@ -477,14 +616,50 @@ function renderDict(){
  let a=words.filter(w=>(w.en+' '+w.ja).toLowerCase().includes(s)).slice(0,300);
  document.getElementById('dictList').innerHTML=a.map(w=>`<div class="item"><b>${esc(w.en)}</b><br>${esc(w.ja)}</div>`).join('')||'<p class="small">見つかりません。</p>';
 }
-function updateData(){document.getElementById('dataInfo').textContent=`${words.length}件をアプリ本体から使用中。学習記録はこの端末に保存されます。`}
+function getLearningStatus(w){
+ let s=stats[w.en]||{}, c=s.c||0, wrong=s.w||0, seen=s.seen||0;
+ if(!seen) return 'unseen';
+ return wrong>c?'weak':'solved';
+}
+function updateData(){
+ const counts={weak:0,solved:0,unseen:0};
+ words.forEach(w=>counts[getLearningStatus(w)]++);
+ document.getElementById('dataInfo').textContent=`${words.length}件をアプリ本体から使用中。学習記録はこの端末に保存されます。`;
+ document.getElementById('chartWeak').textContent=`${counts.weak}語`;
+ document.getElementById('chartSolved').textContent=`${counts.solved}語`;
+ document.getElementById('chartUnseen').textContent=`${counts.unseen}語`;
+ const total=words.length||1, wdeg=counts.weak/total*360, sdeg=(counts.weak+counts.solved)/total*360;
+ const donut=document.getElementById('statusDonut');
+ if(donut) donut.style.background=`conic-gradient(#ef4444 0deg ${wdeg}deg,#22c55e ${wdeg}deg ${sdeg}deg,#cbd5e1 ${sdeg}deg 360deg)`;
+ renderWordStats();
+}
+function renderWordStats(){
+ const body=document.getElementById('wordStatsBody'); if(!body)return;
+ const filter=document.getElementById('wordListFilter')?.value||'all';
+ const search=(document.getElementById('wordListSearch')?.value||'').toLowerCase().trim();
+ let list=words.map(w=>{
+   const s=stats[w.en]||{};
+   return {w,c:s.c||0,wrong:s.w||0,seen:s.seen||0,status:getLearningStatus(w)};
+ });
+ if(filter==='wrong2') list=list.filter(x=>x.wrong>=2);
+ else if(filter==='wrong1') list=list.filter(x=>x.wrong>=1);
+ else if(filter==='unseen') list=list.filter(x=>x.status==='unseen');
+ if(search) list=list.filter(x=>(x.w.en+' '+x.w.ja).toLowerCase().includes(search));
+ list.sort((a,b)=>b.wrong-a.wrong||a.c-b.c||a.w.en.localeCompare(b.w.en));
+ document.getElementById('wordListInfo').textContent=`${list.length}語を表示。正解✓・不正解✕の回数は累計です。`;
+ body.innerHTML=list.map(x=>{
+   const badge=x.status==='weak'?'<span class="statBadge badgeWeak">苦手</span>':x.status==='solved'?'<span class="statBadge badgeSolved">解けた</span>':'<span class="statBadge badgeUnseen">未出題</span>';
+   return `<tr><td><b>${esc(x.w.en)}</b><br><span class="small">${esc(x.w.ja)}</span></td><td>✓ ${x.c}</td><td class="${x.wrong>=1?'mistakeCount':''}">✕ ${x.wrong}</td><td>${badge}</td></tr>`;
+ }).join('')||'<tr><td colspan="4" class="small" style="text-align:center">該当する熟語はありません。</td></tr>';
+}
 function exportProgress(){
  let rows=[['英熟語','正解数','不正解数','出題回数','最終学習']];
  words.forEach(w=>{let s=stats[w.en]||{};rows.push([w.en,s.c||0,s.w||0,s.seen||0,s.last?new Date(s.last).toLocaleString('ja-JP'):''])});
  let csv=rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join('\n');
  let a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv'}));a.download='jukugo_ai_learning.csv';a.click();
 }
-function resetProgress(){if(confirm('学習記録だけをリセットしますか？')){stats={};save();update()}}
+function resetProgress(){if(confirm('学習記録だけをリセットしますか？')){stats={};save();update();updateData()}}
+restoreRangeSettings();
 update();
 </script>
 
