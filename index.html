@@ -4,8 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
-  <link rel="manifest" href="manifest.webmanifest">
 <title>熟語AI｜1000語トレーナー</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
 <style>
 :root{--bg:#f5f7fb;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#111827;--ok:#dcfce7;--ng:#fee2e2}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif}
@@ -36,19 +42,6 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
 #fillChoices button.wrong{background:#ffe0e0;border-color:#d33}
 .blank{display:inline-block;min-width:120px;border-bottom:3px solid currentColor;text-align:center;font-weight:700}
 </style>
-
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23111827'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='48' fill='white'%3E熟%3C/text%3E%3C/svg%3E">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<style>
-#installBtn{display:none;width:100%;margin-top:8px}
-.installHelp{font-size:12px;color:var(--muted);line-height:1.6;margin:8px 0 0}
-</style>
 </head>
 <body>
 <header><h1>熟語AI</h1><div class="sub">1884語対応・4択・空所補充・辞書・苦手復習・学習記録</div></header>
@@ -63,15 +56,15 @@ button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:
 <div class="row"><button class="primary" onclick="start('enja')">英→日 10問</button><button onclick="start('jaen')">日→英 10問</button></div>
 <div class="row" style="margin-top:8px"><button onclick="startFill()">✏️ 空所補充 10問</button><button onclick="startFill(true)">✏️ 空所・苦手</button></div>
 <div class="row" style="margin-top:8px"><button onclick="start('review')">苦手復習</button><button onclick="start('random')">ランダム</button></div></div>
-
-<div class="card">
-<h3>📱 ホーム画面に追加</h3>
-<p class="small">Chromeでこのページを開いて「ホーム画面に追加」できます。</p>
-<button id="installBtn" class="primary" onclick="installApp()">📲 アプリをインストール</button>
-<p class="installHelp">ボタンが出ない場合：Chrome右上の「︙」→「ホーム画面に追加」または「アプリをインストール」を選択してください。</p>
-</div>
 <div class="card"><h3>データ</h3><p class="small">1884件のデータをアプリ本体に内蔵しています。CSVを選択する必要はありません。</p>
 <div class="notice"><b>登録データ</b><br>今回アップロードされたCSVの1〜1884番を読み込み済みです。</div></div>
+
+<div class="card" id="pwaCard">
+<h3>📲 アプリとして使う</h3>
+<p class="small">このページをスマホのアプリとして起動できます。</p>
+<button id="installBtn" class="primary" type="button">📲 アプリをインストール</button>
+<p id="installStatus" class="small" style="margin-top:8px"></p>
+</div>
 </section>
 
 <section id="quiz" class="hidden"><div class="card">
@@ -478,31 +471,6 @@ function exportProgress(){
 }
 function resetProgress(){if(confirm('学習記録だけをリセットしますか？')){stats={};save();update()}}
 update();
-
-// PWA install support
-let deferredInstallPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  const b = document.getElementById('installBtn');
-  if (b) b.style.display = 'block';
-});
-async function installApp(){
-  if (!deferredInstallPrompt){
-    alert('Chromeのメニュー（︙）から「ホーム画面に追加」または「アプリをインストール」を選んでください。');
-    return;
-  }
-  deferredInstallPrompt.prompt();
-  await deferredInstallPrompt.userChoice;
-  deferredInstallPrompt = null;
-  const b = document.getElementById('installBtn');
-  if (b) b.style.display = 'none';
-}
-window.addEventListener('appinstalled', () => {
-  const b = document.getElementById('installBtn');
-  if (b) b.style.display = 'none';
-});
-
 </script>
 
 <script>
@@ -513,12 +481,42 @@ function renderEtymology(w){return typeof etymologyGuide==='function' ? (typeof 
 </script>
 
 <script>
-// GitHub Pages PWA: register the service worker for /idiom-app/
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/idiom-app/sw.js', { scope: '/idiom-app/' })
-      .catch(err => console.error('Service Worker registration failed:', err));
+(() => {
+  let deferredPrompt = null;
+  const btn = document.getElementById('installBtn');
+  const status = document.getElementById('installStatus');
+  if (!btn || !status) return;
+  btn.style.display = 'none';
+  const showInstall = () => { btn.style.display = 'block'; status.textContent = 'この端末でアプリとしてインストールできます。'; };
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstall();
   });
-}
+  btn.addEventListener('click', async () => {
+    if (!deferredPrompt) {
+      status.textContent = 'Chromeがまだインストール可能と判定していません。Chrome右上の︙から「ホーム画面に追加」を確認してください。';
+      return;
+    }
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    if (choice && choice.outcome === 'accepted') status.textContent = 'インストールしました。';
+    deferredPrompt = null;
+    btn.style.display = 'none';
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    btn.style.display = 'none';
+    status.textContent = 'アプリとしてインストール済みです。';
+  });
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js', {scope: './'})
+        .then(() => { status.dataset.sw = 'ok'; })
+        .catch(err => { status.dataset.sw = 'error'; console.error('PWA service worker:', err); });
+    });
+  }
+})();
 </script>
+
 </body></html>
