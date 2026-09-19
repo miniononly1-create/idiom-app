@@ -2,7 +2,7 @@
   "id": "./",
   "name": "熟語AI｜1000語トレーナー",
   "short_name": "熟語AI",
-  "description": "英熟語4択・空所補充・辞書・苦手復習・学習記録",
+  "description": "英熟語4択・空所補充・辞書・復習・学習記録",
   "lang": "ja",
   "dir": "ltr",
   "start_url": "./",
