@@ -1,516 +1,126 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111827">
-<title>熟語AI｜1000語トレーナー</title>
-<link rel="manifest" href="manifest.json">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827"><link rel="manifest" href="manifest.json">
+<title>意味別 英単語トレーナー</title>
 <style>
-:root{--bg:#f5f7fb;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#111827;--ok:#dcfce7;--ng:#fee2e2}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif}
-header{background:#111827;color:#fff;padding:18px 16px 16px;position:sticky;top:0;z-index:10}
-header h1{font-size:22px;margin:0}.sub{font-size:12px;opacity:.7;margin-top:3px}
-main{max-width:760px;margin:auto;padding:14px 14px 92px}.card{background:var(--card);border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 2px 14px #0000000b}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#f3f4f6;border-radius:14px;padding:12px;text-align:center}.num{font-size:24px;font-weight:800}.small{font-size:12px;color:var(--muted)}
-button{border:0;border-radius:13px;padding:12px 11px;font-size:15px;font-weight:750;background:#e5e7eb;color:var(--text);cursor:pointer}.primary{background:var(--accent);color:#fff}.danger{background:#fee2e2}.row{display:flex;gap:8px}.row>*{flex:1}
-.tabs{position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;background:#fff;border-top:1px solid var(--line);padding:8px calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
-.tabs button{font-size:12px;padding:9px 3px}.hidden{display:none!important}.word{font-size:30px;font-weight:850;text-align:center;margin:20px 0 5px;word-break:break-word}.hint{text-align:center;color:var(--muted);margin-bottom:18px}
-.choices{display:grid;gap:9px}.choices button{text-align:left;background:#f3f4f6}.choices button.ok{background:var(--ok)}.choices button.ng{background:var(--ng)}
-.explain{background:#f9fafb;border-radius:14px;padding:14px;margin-top:12px;line-height:1.7}input[type=text]{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:12px;font-size:16px;background:#fff}
-.item{padding:12px 0;border-bottom:1px solid #eee}.item:last-child{border:0}.item b{font-size:18px}
-.notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:12px;font-size:13px;line-height:1.6}
-
-.etymology{margin-top:12px;padding:12px;border-radius:12px;background:#f3f6ff;border:1px solid #d7def5;line-height:1.7}
-.etymologyParts{display:grid;gap:8px;margin-top:9px}
-.etymologyPart{padding:10px;border-radius:10px;background:#fff;border:1px solid #e3e8f5}
-.etymologyPart b{display:block;margin-bottom:3px;color:#374151}
-.unknown{background:#fff7ed!important;border:1px solid #fed7aa!important}
-.fillSentence{font-size:20px;line-height:1.9;background:#f9fafb;border-radius:14px;padding:18px;margin:12px 0 10px;font-weight:650}.blank{display:inline-block;min-width:90px;border-bottom:3px solid #9ca3af;margin:0 4px}.fillCorrect{background:#dcfce7}.fillWrong{background:#fee2e2}.modeBadge{display:inline-block;padding:4px 9px;border-radius:999px;background:#eef2ff;font-size:12px;margin-bottom:5px}
-.rangeInputs label{flex:1}
-.rangeInputs input{background:#fff}
-.statusChartWrap{display:flex;align-items:center;justify-content:center;gap:28px;margin:18px 0 10px;flex-wrap:wrap}
-.statusDonut{width:180px;height:180px;border-radius:50%;background:conic-gradient(#ef4444 0deg,#ef4444 0deg,#22c55e 0deg,#22c55e 0deg,#cbd5e1 0deg,#cbd5e1 360deg);position:relative;flex:0 0 auto}
-.statusDonut::after{content:"";position:absolute;inset:36px;background:#fff;border-radius:50%}
-.statusLegend{min-width:170px;display:grid;gap:11px}
-.legendRow{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;font-size:14px}
-.legendDot{width:11px;height:11px;border-radius:50%;display:block}
-.weakDot{background:#ef4444}.solvedDot{background:#22c55e}.unseenDot{background:#cbd5e1}
-.statusNote{font-size:12px;color:var(--muted);line-height:1.6;background:#f8fafc;border-radius:10px;padding:9px}
-.wordStatsTableWrap{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:520px}
-.wordStatsTable{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
-.wordStatsTable th,.wordStatsTable td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-.wordStatsTable th{position:sticky;top:0;background:#f8fafc;z-index:1}
-.wordStatsTable td:nth-child(2),.wordStatsTable td:nth-child(3){text-align:center;width:62px}
-.wordStatsTable td:nth-child(4){text-align:center;width:80px}.wordStatsTable td:nth-child(5){width:90px}
-.statBadge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:700}
-.badgeWeak{background:#fee2e2;color:#991b1b}.badgeSolved{background:#dcfce7;color:#166534}.badgeUnseen{background:#e5e7eb;color:#475569}
-.mistakeCount{font-weight:800;color:#b91c1c}
-@media(max-width:520px){
- .statusDonut{width:155px;height:155px}.statusDonut::after{inset:31px}
- .statusChartWrap{gap:18px}
-}
-.statusFilters{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 4px}
-.statusFilters button{padding:9px 11px;font-size:13px;background:#f3f4f6;border:1px solid #e5e7eb}
-.statusFilters button.active{background:#111827;color:#fff;border-color:#111827}
-.rateGood{font-weight:800;color:#166534}
-.rateBad{font-weight:800;color:#b91c1c}
-.rateNone{color:#64748b}
-
-.chartGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
-.rangeChart{background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
-.rangeChart h3{margin:0 0 8px;font-size:15px}
-.rangeDonut{width:150px;height:150px;margin:8px auto 12px;border-radius:50%;position:relative;background:conic-gradient(#ef4444 0deg,#ef4444 0deg,#22c55e 0deg,#22c55e 0deg,#cbd5e1 0deg,#cbd5e1 360deg)}
-.rangeDonut:after{content:"";position:absolute;inset:30px;background:#fff;border-radius:50%}
-.rangeLegend{display:grid;gap:6px;text-align:left;font-size:12px}.rangeLegendRow{display:flex;justify-content:space-between;gap:8px}.rangeLegendRow span:first-child{font-weight:700}
-.rangeLegendRow .rWrong{color:#b91c1c}.rangeLegendRow .rSolved{color:#166534}.rangeLegendRow .rUnseen{color:#475569}
-.pageTitle{margin-bottom:4px}.pageSub{font-size:12px;color:var(--muted);line-height:1.5}
-@media(max-width:520px){.chartGrid{grid-template-columns:1fr}.rangeDonut{width:135px;height:135px}.rangeDonut:after{inset:27px}}
-</style>
-
-<style>
-#fillChoices{display:grid;grid-template-columns:1fr;gap:10px;margin:14px 0}
-#fillChoices button{width:100%;text-align:left;padding:14px;border-radius:12px;border:1px solid #ccc;background:#fff;font-size:16px}
-#fillChoices button.correct{background:#d9f7df;border-color:#38a169}
-#fillChoices button.wrong{background:#ffe0e0;border-color:#d33}
-.blank{display:inline-block;min-width:120px;border-bottom:3px solid currentColor;text-align:center;font-weight:700}
-
-.chartGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
-.rangeChart{background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
-.rangeChart h3{margin:0 0 8px;font-size:15px}
-.rangeDonut{width:150px;height:150px;margin:8px auto 12px;border-radius:50%;position:relative;background:conic-gradient(#ef4444 0deg,#ef4444 0deg,#22c55e 0deg,#22c55e 0deg,#cbd5e1 0deg,#cbd5e1 360deg)}
-.rangeDonut:after{content:"";position:absolute;inset:30px;background:#fff;border-radius:50%}
-.rangeLegend{display:grid;gap:6px;text-align:left;font-size:12px}.rangeLegendRow{display:flex;justify-content:space-between;gap:8px}.rangeLegendRow span:first-child{font-weight:700}
-.rangeLegendRow .rWrong{color:#b91c1c}.rangeLegendRow .rSolved{color:#166534}.rangeLegendRow .rUnseen{color:#475569}
-.pageTitle{margin-bottom:4px}.pageSub{font-size:12px;color:var(--muted);line-height:1.5}
-@media(max-width:520px){.chartGrid{grid-template-columns:1fr}.rangeDonut{width:135px;height:135px}.rangeDonut:after{inset:27px}}
-</style>
-</head>
-<body>
-<header><h1>熟語AI</h1><div class="sub">1000語対応・4択・空所補充・辞書・復習・学習記録</div></header>
-<main>
-<section id="home">
-<div class="card"><div class="grid">
-<div class="stat"><div class="num" id="total">0</div><div class="small">登録熟語</div></div>
-<div class="stat"><div class="num" id="correct">0</div><div class="small">正解数</div></div>
-<div class="stat"><div class="num" id="weak">0</div><div class="small">要復習</div></div>
-</div></div>
-<div class="card"><h2>今日の学習</h2><p id="status" class="small"></p>
-<div class="card" style="margin:0 0 12px;padding:14px;background:#f8fafc;border:1px solid #e5e7eb;box-shadow:none">
-  <b>📚 出題範囲</b>
-  <div style="margin-top:8px">
-    <select id="rangeMode" onchange="toggleRangeInputs()" style="width:100%;padding:11px;border:1px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff">
-      <option value="all">指定しない（1〜1000）</option>
-      <option value="custom">番号で指定する</option>
-    </select>
-  </div>
-  <div id="rangeInputs" class="row" style="margin-top:8px;display:none">
-    <label class="small">開始番号<br><input id="rangeStart" type="number" min="1" max="1000" value="1" style="width:100%;padding:11px;border:1px solid #d1d5db;border-radius:12px;font-size:16px"></label>
-    <label class="small">終了番号<br><input id="rangeEnd" type="number" min="1" max="1000" value="1000" style="width:100%;padding:11px;border:1px solid #d1d5db;border-radius:12px;font-size:16px"></label>
-  </div>
-  <p id="rangeStatus" class="small" style="margin:8px 0 0"></p>
-</div>
-<div class="row"><button class="primary" onclick="start('enja')">英→日 10問</button><button onclick="start('jaen')">日→英 10問</button></div>
-<div class="row" style="margin-top:8px"><button onclick="startFill()">✏️ 空所補充 10問（例文対応語）</button><button onclick="startFill(true)">✏️ 空所・要復習（例文対応語）</button></div>
-<div class="row" style="margin-top:8px"><button onclick="start('review')">復習</button><button onclick="start('random')">ランダム</button></div></div>
-<div class="card"><h3>データ</h3><p class="small">1000件のデータをアプリ本体に内蔵しています。CSVを選択する必要はありません。</p>
-<div class="notice"><b>登録データ</b><br>今回の学習用データ1〜1000番を読み込み済みです。</div></div>
-
-<div class="card" id="pwaCard">
-<h3>📲 アプリとして使う</h3>
-<p class="small">このページをスマホのアプリとして起動できます。</p>
-<button id="installBtn" class="primary" type="button">📲 アプリをインストール</button>
-<p id="installStatus" class="small" style="margin-top:8px"></p>
-</div>
-</section>
-
-<section id="quiz" class="hidden"><div class="card">
-<div class="small" id="count"></div><div class="word" id="qword"></div><div class="hint" id="qhint"></div>
-<div class="choices" id="choices"></div>
-<div id="fillArea" class="hidden"><div id="fillSentence" class="fillSentence"></div><div id="fillChoices"></div><div id="fillHint" class="small" style="margin-top:8px">ヒント：空欄に入る熟語を4択から選んでください</div></div>
-<div id="explain" class="explain hidden"></div>
-<button id="next" class="primary" style="width:100%;margin-top:10px" onclick="nextQ()">次の問題</button>
-</div></section>
-
-<section id="dict" class="hidden"><div class="card"><h2>熟語辞書</h2>
-<input id="search" type="text" placeholder="熟語・意味を検索" oninput="renderDict()"><div id="dictList"></div></div></section>
-
-<section id="data" class="hidden">
-<div class="card">
-  <h2 class="pageTitle">📊 学習状況</h2>
-  <p id="dataInfo" class="pageSub"></p>
-  <div class="notice">1000語を4つに分け、<b>250語ずつ</b>の学習状況を円グラフで表示します。<br>①1〜250　②251〜500　③501〜750　④751〜1000</div>
-  <div class="chartGrid">
-    <div class="rangeChart"><h3>① 1〜250</h3><div class="rangeDonut" id="donut1"></div><div class="rangeLegend"><div class="rangeLegendRow"><span class="rWrong">● 要復習</span><b id="r1w">0</b></div><div class="rangeLegendRow"><span class="rSolved">● 正解</span><b id="r1s">0</b></div><div class="rangeLegendRow"><span class="rUnseen">● 未出題</span><b id="r1u">0</b></div></div></div>
-    <div class="rangeChart"><h3>② 251〜500</h3><div class="rangeDonut" id="donut2"></div><div class="rangeLegend"><div class="rangeLegendRow"><span class="rWrong">● 要復習</span><b id="r2w">0</b></div><div class="rangeLegendRow"><span class="rSolved">● 正解</span><b id="r2s">0</b></div><div class="rangeLegendRow"><span class="rUnseen">● 未出題</span><b id="r2u">0</b></div></div></div>
-    <div class="rangeChart"><h3>③ 501〜750</h3><div class="rangeDonut" id="donut3"></div><div class="rangeLegend"><div class="rangeLegendRow"><span class="rWrong">● 要復習</span><b id="r3w">0</b></div><div class="rangeLegendRow"><span class="rSolved">● 正解</span><b id="r3s">0</b></div><div class="rangeLegendRow"><span class="rUnseen">● 未出題</span><b id="r3u">0</b></div></div></div>
-    <div class="rangeChart"><h3>④ 751〜1000</h3><div class="rangeDonut" id="donut4"></div><div class="rangeLegend"><div class="rangeLegendRow"><span class="rWrong">● 要復習</span><b id="r4w">0</b></div><div class="rangeLegendRow"><span class="rSolved">● 正解</span><b id="r4s">0</b></div><div class="rangeLegendRow"><span class="rUnseen">● 未出題</span><b id="r4u">0</b></div></div></div>
-  </div>
-  <p class="statusNote" style="margin-top:12px">※「要復習」＝直近の回答が不正解、または不正解が正解より多いもの。「正解」＝出題済みで要復習ではないもの。「未出題」＝まだ一度も出題していないもの。各円グラフは250語を100%として表示します。</p>
-</div>
-</section>
-
-<section id="list" class="hidden">
-<div class="card">
-  <div class="row" style="align-items:center"><div style="flex:1"><h2 style="margin:0">📋 熟語一覧</h2></div><div style="flex:1"><select id="wordListFilter" onchange="renderWordStats()" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:11px;font-size:14px;background:#fff"><option value="all">すべて</option><option value="wrong2">2回以上間違えた</option><option value="wrong1">現在「要復習」</option><option value="solved">正解</option><option value="unseen">未出題</option></select></div></div>
-  <input id="wordListSearch" type="text" placeholder="熟語・意味を検索" oninput="renderWordStats()" style="margin-top:10px">
-  <p id="wordListInfo" class="small" style="margin:8px 0"></p>
-  <div class="wordStatsTableWrap"><table class="wordStatsTable"><thead><tr><th>熟語</th><th>正解</th><th>不正解</th><th>正答率</th><th>状態</th></tr></thead><tbody id="wordStatsBody"></tbody></table></div>
-</div>
-<div class="card"><h3>💾 データ管理</h3><button onclick="exportProgress()" style="width:100%">学習記録を書き出す</button><button class="danger" style="width:100%;margin-top:8px" onclick="resetProgress()">学習記録をリセット</button></div>
-</section>
-</main>
-<nav class="tabs"><button onclick="show('home')">ホーム</button><button onclick="show('quiz')">クイズ</button><button onclick="show('dict')">辞書</button><button onclick="show('data')">📊状況</button><button onclick="show('list')">📋一覧</button></nav>
-
+*{box-sizing:border-box}body{margin:0;background:#f3f5f9;color:#111827;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
+button,input{font:inherit}.app{max-width:760px;margin:auto;min-height:100vh;padding-bottom:78px}
+header{padding:22px 18px 10px}.muted{color:#667085;font-size:13px}
+h1{margin:4px 0 0;font-size:25px}.screen{padding:8px 16px}.card{background:white;border:1px solid #e5e7eb;border-radius:20px;padding:18px;margin-bottom:13px;box-shadow:0 4px 16px #1118270a}
+.hero{background:linear-gradient(135deg,#312e81,#4f46e5);color:#fff;border:0}.hero .muted{color:#dbeafe}
+.primary{width:100%;padding:14px;border:0;border-radius:14px;background:#4f46e5;color:#fff;font-weight:800}.secondary{padding:11px 14px;border:0;border-radius:12px;background:#eef2ff;color:#3730a3;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:14px}.stat strong{display:block;font-size:25px}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#ffffffee;border-top:1px solid #e5e7eb;display:flex;justify-content:center;z-index:5}.nav button{background:none;border:0;padding:10px 17px;color:#667085;font-size:11px}.nav b{display:block;font-size:20px}
+.big{font-size:40px;font-weight:850}.wordbox{text-align:center;padding:30px 10px}.tag{display:inline-block;padding:4px 9px;border-radius:99px;background:#eef2ff;color:#4338ca;font-size:11px;margin:3px}
+.answers{display:grid;gap:10px}.answer{background:#fff;border:2px solid #e5e7eb;border-radius:15px;padding:15px;text-align:left;font-weight:700}.answer.correct{border-color:#16a34a;background:#f0fdf4}.answer.wrong{border-color:#dc2626;background:#fef2f2}
+.feedback{text-align:center;font-weight:800;padding:13px}.bar{height:9px;background:#e5e7eb;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:#4f46e5}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.list{display:grid;gap:8px}.item{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:13px}.search{width:100%;padding:13px;border:1px solid #d0d5dd;border-radius:13px;margin-bottom:10px}
+.center{text-align:center}.danger{background:#fef2f2;color:#b91c1c}.small{font-size:12px}
+</style></head>
+<body><div id="app"></div>
 <script>
-const INITIAL_WORDS = [{"en":"a piece of ～","ja":"１つの～"},{"en":"a couple of ～","ja":"２つの～、２，３の～"},{"en":"a number of ～","ja":"いくつもの～、かなり多くの～"},{"en":"dozens of ～","ja":"数十もの～、何ダースもの～"},{"en":"plenty of ～","ja":"たくさんの～"},{"en":"a great/good deal (of ～)","ja":"たくさん（の～）"},{"en":"at home","ja":"①在宅して、家庭で ②くつろいで ③精通して"},{"en":"in time","ja":"①間に合って ②やがて、そのうちに"},{"en":"in fashion","ja":"流行して"},{"en":"on time","ja":"時間通りに［で］"},{"en":"on duty","ja":"当番で、勤務時間中で"},{"en":"on schedule","ja":"予定通りで、定時に"},{"en":"up to date","ja":"最新（式）の"},{"en":"be aware of ～","ja":"～を知っている、～に気づいている"},{"en":"be made of ～","ja":"～でできている"},{"en":"be capable of ～","ja":"～ができる、～の可能性がある"},{"en":"be afraid of ～","ja":"～を恐れる［怖がる］、～を心配している"},{"en":"be sure of/about ～","ja":"～を確信している"},{"en":"be composed of ～","ja":"～から構成されている"},{"en":"be based on/upon ～","ja":"～に基づいている"},{"en":"be different from ～","ja":"～とは違っている"},{"en":"be absent from ～","ja":"～を欠席する"},{"en":"be engaged in ～","ja":"～に従事している、忙しく～をしている"},{"en":"be responsible for ～","ja":"～に責任がある"},{"en":"be married (to ～)","ja":"（～と）結婚している"},{"en":"be satisfied with ～","ja":"～に満足している"},{"en":"be curious about ～","ja":"～を知りたがる、～に好奇心の強い"},{"en":"be well off","ja":"裕福である"},{"en":"be likely to do","ja":"…しそうである"},{"en":"be willing to do","ja":"…してもかまわない"},{"en":"be about to do","ja":"今にも…しようとしている"},{"en":"lead to ～","ja":"～（という結果）を引き起こす、～へと通じる"},{"en":"refer to ～","ja":"①～に言及する ②～を参照する、～に問い合わせる"},{"en":"contribute to ～","ja":"～の一因となる、～に貢献する、～に寄付［寄稿］する"},{"en":"amount to ～","ja":"総計～になる"},{"en":"depend on/upon ～","ja":"～に頼る、～しだいである"},{"en":"focus on ～","ja":"～に集中する、～に焦点を合わせる"},{"en":"rely on/upon ～","ja":"～に頼る"},{"en":"get on (～)","ja":"①（公共の乗り物など）に乗る ②仲良くやっていく、（なんとか）やっていく"},{"en":"insist on/upon ～","ja":"～を主張する"},{"en":"concentrate on ～","ja":"～に集中する"},{"en":"look for ～","ja":"～を探す［捜す］"},{"en":"search for ～","ja":"～を探す［捜す］"},{"en":"prepare for ～","ja":"～の準備をする、～に備える"},{"en":"think of ～","ja":"①～をしようかなと思う、～のことを考える ②～を思いつく ③～を思い出す"},{"en":"consist of ～","ja":"～から成り立っている"},{"en":"complain about/of ～","ja":"（苦痛など）を訴える、～について不平を言う"},{"en":"die of/from ～","ja":"～で死ぬ"},{"en":"suffer from ～","ja":"（病気など）で苦しむ［悩む］"},{"en":"result from ～","ja":"～から起こる"},{"en":"graduate from ～","ja":"～を卒業する"},{"en":"differ from ～","ja":"～と異なる"},{"en":"recover from ～","ja":"～から立ち直る［回復する］"},{"en":"hear from ～","ja":"～から便り［電話・伝言］がある"},{"en":"believe in ～","ja":"～の価値［存在］を信じる、～を信用する"},{"en":"succeed in ～","ja":"～に成功する"},{"en":"major in ～","ja":"（大学生が）～を専攻する"},{"en":"abound in/with ～","ja":"（場所が）～に富む"},{"en":"care about ～","ja":"～に気にかける、～に関心を持つ"},{"en":"bring about ～","ja":"～を引き起こす"},{"en":"deal with ～","ja":"～を扱う、処理する"},{"en":"go through ～","ja":"①～を通過する ②（苦しみなど）を経験する"},{"en":"give up ～","ja":"～をあきらめる、～捨てる［やめる］"},{"en":"grow up","ja":"大人になる、（事態などが）生じる"},{"en":"pick up ～","ja":"～を（車などに）乗せる、～拾う"},{"en":"set up ～","ja":"～を立てる［建てる］、～を創設する［始める］"},{"en":"wake up (～)","ja":"目が覚める、（人）の目を覚まさせる"},{"en":"brush up (on) ～","ja":"（語学など）をやり直して磨きをかける"},{"en":"find out ～","ja":"（調査などの結果）を見つけ出す、（真相）を知る"},{"en":"carry out ～","ja":"～を実行する"},{"en":"point out ～","ja":"～を指摘する"},{"en":"figure out (～)","ja":"～を理解する、～を計算する、～を解く"},{"en":"turn out (～)","ja":"①～であることが分かる、（結果的に）～になる ②～を産出する ③（催しなどに）繰り出す"},{"en":"fill out ～","ja":"（書類など）に書き込む"},{"en":"pick out ～","ja":"～を選ぶ"},{"en":"put on ～","ja":"～を（身に）つける、（電気器具ガスなど）をつける"},{"en":"work on (～)","ja":"①働き続ける ②～に取り組む、～を手がける、～に影響を与える、（薬などが）～に効く"},{"en":"try on ～","ja":"～を試着する"},{"en":"turn on (～)","ja":"（スイッチなど）をつける、（水・ガスなど）を出す、（明かりなどが）つく"},{"en":"turn off (～)","ja":"（スイッチなど）を消す、（水・ガスなど）を止める、（明かりなどが）消える"},{"en":"take off (～)","ja":"①～を脱ぐ、～を取り除く ②離陸する、（流行・売り上げなどが）急増［急伸］する ③～を休暇としてとる"},{"en":"get along","ja":"①暮らす、（なんとか）やっていく ②仲良くやっていく、進む"},{"en":"get together (～)","ja":"集まる、～を集める"},{"en":"calm down (～)","ja":"～を落ち着かせる［静める］、落ち着く［静まる］"},{"en":"think over ～","ja":"～をよく考える"},{"en":"keep doing","ja":"…し続ける"},{"en":"take place","ja":"催される、起こる"},{"en":"play a role/part (in ～)","ja":"（～で）役割を演じる［果たす］"},{"en":"make sure (～)","ja":"（～を）確かめる、確実に～をする"},{"en":"make sense","ja":"意味をなす、道理にかなう"},{"en":"make a difference","ja":"違いが生じる、重要である"},{"en":"make a mistake","ja":"間違いをする"},{"en":"make progress","ja":"進歩する"},{"en":"make up one's mind","ja":"決心する"},{"en":"do one's best","ja":"最善を尽くす"},{"en":"keep one's promise/word","ja":"約束を守る"},{"en":"get lost","ja":"道に迷う"},{"en":"enjoy oneself","ja":"楽しい時を過ごす"},{"en":"have/take ～ off","ja":"～を休みとしてとる"},{"en":"pay attention to ～","ja":"～に注意を払う"},{"en":"take care of ～","ja":"～に気をつける、～の世話をする"},{"en":"look forward to ～","ja":"～を楽しみに待つ"},{"en":"ask for ～","ja":"～を求める"},{"en":"get rid of ～","ja":"（厄介なもの）を取り除く"},{"en":"fall in love with ～","ja":"（事・物）を大好きになる、（人）と恋に落ちる"},{"en":"used to do/be","ja":"～したものだった、昔は～であった"},{"en":"had better do","ja":"…したほうがいい、…すべきだ"},{"en":"help A with B","ja":"AのBを手伝う、AをBで助ける"},{"en":"prefer A to B","ja":"ＢよりＡを好む"},{"en":"turn A into B","ja":"ＡをＢに（質的に）変える"},{"en":"prevent A from B","ja":"AがBするのを妨げる、AをBから防ぐ"},{"en":"remind A of/about B","ja":"AにBを思い出させる"},{"en":"regard A as B","ja":"AをBとみなす"},{"en":"associate A with B","ja":"ＡをＢと結びつけて考える"},{"en":"inform A of/about B","ja":"AにBを知らせる"},{"en":"after all","ja":"結局（は）、やっぱり"},{"en":"all the time","ja":"いつも、常に"},{"en":"all the way","ja":"ずっと、はるばる"},{"en":"～ and so on/forth","ja":"～など"},{"en":"and yet","ja":"それにも関わらず"},{"en":"as ～ as possible/one can","ja":"できる限り～"},{"en":"as a result (of ～)","ja":"（～の）結果として"},{"en":"as a whole","ja":"全体として（の）"},{"en":"as usual","ja":"いつものように"},{"en":"at best","ja":"よくても、せいぜい"},{"en":"at least","ja":"少なくとも"},{"en":"at (the) most","ja":"せいぜい、多くても"},{"en":"at a time","ja":"一度に"},{"en":"at once","ja":"①すぐに ②同時に"},{"en":"at all","ja":"①（否定文で）まったく ②（疑問文で）一体、そもそも ③（肯定文で）そもそも、ともかく"},{"en":"at any rate","ja":"とにかく、いずれにしても"},{"en":"at random","ja":"無作為に、手当たり次第に"},{"en":"more or less","ja":"①多かれ少なかれ、程度の差はあれ②ほぼ、おおよそ"},{"en":"at times","ja":"ときどき"},{"en":"between you and me","ja":"ここだけの話だが、内緒だが"},{"en":"by hand","ja":"手で"},{"en":"by mistake","ja":"間違って"},{"en":"by no means","ja":"全然～ない"},{"en":"by the way","ja":"ところで"},{"en":"far from ～","ja":"～からほど遠い、～どころではない"},{"en":"for a while","ja":"しばらくの間"},{"en":"for example/instance","ja":"例えば"},{"en":"for one thing","ja":"一つには"},{"en":"in a hurry","ja":"急いで、あせって"},{"en":"in addition (to ～)","ja":"（～に）加えて、さらに"},{"en":"in any case/event","ja":"とにかく、いずれにしても"},{"en":"in detail","ja":"詳細に"},{"en":"in fact","ja":"①実際に ②（前言と対照して）（ところが）実際は"},{"en":"in general","ja":"①一般に ②（名詞の後に置いて）一般の"},{"en":"in other words","ja":"言い換えれば、つまり"},{"en":"in public","ja":"人前で、公然と"},{"en":"in reality","ja":"（ところが）実際には、（想像などではなく）現実に"},{"en":"in the end","ja":"結局は、ついには"},{"en":"in the future","ja":"将来は、今後は"},{"en":"in the long run","ja":"長い目で見れば、結局は"},{"en":"no doubt","ja":"おそらく、たぶん"},{"en":"no longer ～","ja":"もはや～ない"},{"en":"not always ～","ja":"必ずしも～ではない"},{"en":"on earth","ja":"①（疑問詞を強めて）一体全体 ②（最上級を強めて）世界中で"},{"en":"on the other hand","ja":"他方では、これに反して"},{"en":"so far","ja":"今までの所"},{"en":"sooner or later","ja":"遅かれ早かれ"},{"en":"these days","ja":"近頃は、この頃は"},{"en":"according to ～","ja":"①～によれば ②～に従って、～に応じて"},{"en":"owing/due to ～","ja":"～のために"},{"en":"thanks to ～","ja":"～のおかげで"},{"en":"in spite of ～","ja":"～にもかかわらず"},{"en":"all over (～)","ja":"（～の）至る所に［で］、一面に"},{"en":"apart from ～","ja":"①～のほかに ②～を除いては"},{"en":"aside from ～","ja":"～を除いては、～のほかに"},{"en":"ahead of ～","ja":"（時間的に）～より先に、（位置的に）～の前に、～より進歩して"},{"en":"in search of ～","ja":"～を求めて［探して］"},{"en":"in preparation","ja":"～の準備中で"},{"en":"each other","ja":"お互い"},{"en":"so ～ that …","ja":"（結果を表して）非常に～なので…する"},{"en":"A as well as B","ja":"BだけでなくAも"},{"en":"not only A but (also) B","ja":"AだけでなくBも"},{"en":"as if/though …","ja":"まるで…するように"},{"en":"as soon as …","ja":"…するやいなや"},{"en":"Something is wrong with ～.","ja":"～はどこか調子がおかしい［故障している］"},{"en":"bring up ～","ja":"①～を育てる②（問題・話題など）を持ち出す = raise"},{"en":"call off ～","ja":"～を中止する［取り消す］ = cancel"},{"en":"carry on (～)","ja":"（～を）続ける = happen, occur"},{"en":"come about","ja":"起こる = continue"},{"en":"come by ～","ja":"～を手に入れる = get, obtain"},{"en":"come up with ～","ja":"（解決策など）を思いつく = devise, invent, conceive"},{"en":"do away with ～","ja":"～を取り除く、～を廃止する = eliminate, abolish"},{"en":"find fault with ～","ja":"～にけちをつける、～を非難する = criticize"},{"en":"get over","ja":"～を克服する、（病気など）から回復する = overcome"},{"en":"hand in ～","ja":"（手渡しで）～を提出する［届ける］ = submit"},{"en":"learn ～ by heart","ja":"～を暗記する = memorize"},{"en":"look into ～","ja":"～を調べる = investigate"},{"en":"look over ～","ja":"～を（ざっと）調べる = examine"},{"en":"pass away","ja":"死ぬ = die"},{"en":"put off ～","ja":"～を延期する = postpone"},{"en":"put together ～","ja":"（部品など）を組み立てる、（考えなど）をまとめる = assemble, build"},{"en":"put up ～","ja":"①～を掲げる、～を上げる、～を建てる②～を泊める = raise, lift, erect, construct/accommodete"},{"en":"put up with ～","ja":"～を我慢する = tolerate, endure, stand"},{"en":"set about ～","ja":"～を始める = begin, start"},{"en":"set in","ja":"始まる = begin, start"},{"en":"take after ～","ja":"～に似ている = resemble"},{"en":"of importance","ja":"重要な = important"},{"en":"along with ～","ja":"～と一緒に、～に加えて = besides"},{"en":"in connection with ～","ja":"～に関連して = concerning, about"},{"en":"on board (～)","ja":"（乗り物）に乗って、乗って（た） = aboard"},{"en":"prior to ～","ja":"～より前で = before"},{"en":"(every) once in a while","ja":"ときどき = sometimes, occasionally"},{"en":"above all (else)","ja":"とりわけ、特に = especially, particularly"},{"en":"all of a sudden","ja":"突然に、不意に = suddenly, abruptly"},{"en":"(all/just) the same","ja":"それでもやはり = nevertheless"},{"en":"as a (general) rule","ja":"普通は、概して = generally, usually"},{"en":"as well","ja":"～もまた = too, also"},{"en":"before long","ja":"間もなく = soon"},{"en":"by degrees","ja":"徐々に = gradually"},{"en":"for good","ja":"永久に = forever, permanently"},{"en":"for the most part","ja":"大体は、大部分は = mostly, generally"},{"en":"from time to time","ja":"ときどき = sometimes, occationally"},{"en":"in advance","ja":"前もって = beforehand"},{"en":"in all","ja":"全部で = altogether"},{"en":"in particular","ja":"特に =especially, particularly"},{"en":"on occasion(s)","ja":"ときどき = sometimes, occationally"},{"en":"on purpose","ja":"わざと、故意に = intentionally, purposely"},{"en":"over and over (again)","ja":"何度も繰り返し = repeatedly"},{"en":"right away","ja":"今すぐ、直ちに = immediately"},{"en":"agree to ～","ja":"（提案・計画・条件など）に同意する"},{"en":"agree with ～","ja":"（人が）（人・考えなど）に同意する、（気候・食物などが）～に合う、～に一致［適合］する"},{"en":"apply for ～","ja":"（仕事・許可など）を申し込む［志願する］"},{"en":"apply to ～","ja":"①～に当てはまる ②（人・場所・組織）に申し込む"},{"en":"remember doing","ja":"…したのを覚えている"},{"en":"remember to do","ja":"忘れずに…する"},{"en":"catch up with/to ～","ja":"（遅れた状態から）～に追いつく"},{"en":"keep pace with ～","ja":"～に遅れずについていく"},{"en":"keep up with ～","ja":"～に遅れずについていく"},{"en":"leave ～ alone","ja":"～をそのままにしておく、～に干渉しない"},{"en":"let alone ～","ja":"～は言うまでもなく"},{"en":"correspond to ～","ja":"～に一致する、～に相当する"},{"en":"correspond with ～","ja":"～とやりとりを交わす、～と文通する"},{"en":"hit on/upon ～","ja":"～を思いつく、～に出くわす"},{"en":"occur to ～","ja":"ふと（人）の心に浮かぶ"},{"en":"dawn on ～","ja":"（考えなどが）（人）にわかり始める［思い浮かぶ］"},{"en":"make the best of ～","ja":"（不利な状況で）～を最大限に利用する［善処する］"},{"en":"make the most of ～","ja":"～を最大限に利用する"},{"en":"lay off ～","ja":"～を一時解雇する"},{"en":"lay out ～","ja":"～を並べる、～を設計する"},{"en":"be concerned about/for ～","ja":"～を心配している"},{"en":"be concerned with/in ～","ja":"～に関係している"},{"en":"be free from/of ～","ja":"～がない"},{"en":"be free to do","ja":"自由に…できる"},{"en":"be familiar to ～","ja":"（人）によく知られている"},{"en":"be familiar with ～","ja":"（物事）をよく知っている"},{"en":"be true of ～","ja":"～に当てはめる"},{"en":"be true to ～","ja":"～に忠実である"},{"en":"be tired from/with ～","ja":"～で疲れる"},{"en":"be tired of ～","ja":"～に飽きる［うんざりしている］"},{"en":"be bound for ～","ja":"～行きである"},{"en":"be bound to do","ja":"きっと…する、…する責任がある"},{"en":"be anxious about ～","ja":"～を心配している"},{"en":"be anxious to do","ja":"…したがる"},{"en":"～ to come","ja":"（名詞の後に置いて）将来の～、来たるべき～"},{"en":"～ to go","ja":"（名詞の後に置いて）あと～、残りの～、持ち帰り用の～"},{"en":"anything but ～","ja":"全然～ではない、～どころではない"},{"en":"nothing but ～","ja":"ただ～だけ、～にすぎない"},{"en":"at first","ja":"最初は"},{"en":"for the first time","ja":"初めて"},{"en":"in the way (of ～)","ja":"（～の）邪魔になって"},{"en":"on the way (to ～)","ja":"（～への）途中で"},{"en":"by now","ja":"今はもう、今頃は"},{"en":"for now","ja":"今のところは、当分は"},{"en":"on the contrary","ja":"それどころか、それに反して"},{"en":"to the contrary","ja":"それと反対の［に］"},{"en":"in the air","ja":"未決定で、空中で［の］、（雰囲気などが）感じられて"},{"en":"on the air","ja":"放送中の［で］"},{"en":"by chance","ja":"偶然に"},{"en":"by any chance","ja":"（疑問文で）もしかして"},{"en":"as a matter of course","ja":"当然のこととして"},{"en":"as a matter of fact","ja":"実を言うと、実際は"},{"en":"at a distance","ja":"ある距離を置いて"},{"en":"in the distance","ja":"遠方に［で］"},{"en":"inside out","ja":"裏返して、ひっくり返して"},{"en":"upside down","ja":"逆さまに、ひっくり返って"},{"en":"provide A with B","ja":"AにBを供給する"},{"en":"supply A with B","ja":"AにBを供給する"},{"en":"mistake A for B","ja":"AをBと間違える"},{"en":"take A for B","ja":"AをBだと（誤って）思う［間違える］"},{"en":"look on/upon A as B","ja":"AをBと見なす"},{"en":"think of A as B","ja":"AをBと見なす"},{"en":"distinguish A from B","ja":"AをBと区別する"},{"en":"tell A from B","ja":"AとBを区別する"},{"en":"participate in ～","ja":"～に参加する"},{"en":"take part in ～","ja":"～に参加する"},{"en":"compensate for ～","ja":"～の埋め合わせをする、～を補償する"},{"en":"make up (～)","ja":"①～を構成する、～を作り上げる ②仲直りをする ③～の埋め合わせをする"},{"en":"care for ～","ja":"①～の世話をする ②～を好む、～を望む"},{"en":"look after ～","ja":"～の世話をする"},{"en":"show up (～)","ja":"①（予定の所に）現れる ②目立つ、～を目立たせる"},{"en":"turn up (～)","ja":"①現れる、起こる ②（ガス・音量など）を大きくする、～を探し出す"},{"en":"consist in ～","ja":"～にある"},{"en":"lie in ～","ja":"～にある"},{"en":"give in (～)","ja":"①屈服する ②～を提出する"},{"en":"give way (to ～)","ja":"（～に）屈服する、（～に）道を譲る"},{"en":"stand out","ja":"際立つ、目立つ"},{"en":"stick out","ja":"突き出る、目立つ"},{"en":"cling to ～","ja":"～にくっつく、～に固執［執着］する"},{"en":"stick to ～","ja":"（主義・決定など）を堅持する、～にくっつく"},{"en":"count on/upon ～","ja":"～に頼る、～を当てする"},{"en":"rest on/upon","ja":"～に基づく、～に頼る"},{"en":"look out for ～","ja":"～に気をつける"},{"en":"watch out for ～","ja":"～に気をつける"},{"en":"hand over ～","ja":"～を引き渡す、～を手渡す"},{"en":"turn over ～","ja":"①～を引き渡す、～を譲る ②～をひっくり返す、（ページなど）をめくる、ひっくり返る"},{"en":"date back to ～","ja":"～にさかのぼる、～に始まる"},{"en":"date from ～","ja":"～から始まる、～にさかのぼる"},{"en":"put aside ～","ja":"～を蓄える、～をわきに置く、～を取っておく"},{"en":"set aside ～","ja":"～を蓄える、～を取っておく、～をわきに置く"},{"en":"sit up","ja":"①（寝ないで）起きている ②（寝た状態から）上半身を起こす ③きちんと座る"},{"en":"stay up","ja":"（寝ないで）起きている"},{"en":"hold back ～","ja":"～を制止する、（真相など）を隠す"},{"en":"keep back ～","ja":"（真相など）を隠す、～を制止する"},{"en":"feel sorry for ～","ja":"～を気の毒に思う、～に同情する"},{"en":"take/have pity on ～","ja":"～に同情する"},{"en":"sympathize with ～","ja":"～に同情する"},{"en":"take pride in ～","ja":"～を誇り［自慢］に思う"},{"en":"pride oneself on ～","ja":"～を誇り［自慢］に思う"},{"en":"surrender to ～","ja":"～に屈する"},{"en":"yield to ～","ja":"～に屈する、～に道を譲る"},{"en":"be essential to ～","ja":"～にとって不可欠である"},{"en":"be indispensable to/for ～","ja":"～にとって不可欠である"},{"en":"be equal to ～","ja":"～に等しい"},{"en":"be equivalent to ～","ja":"～に等しい"},{"en":"be apt to do","ja":"～しがちである"},{"en":"be inclined to do","ja":"～する傾向がある、～したい気がする"},{"en":"in a sense","ja":"ある意味では、ある点で"},{"en":"in a way","ja":"ある意味では、ある点で"},{"en":"first of all","ja":"まず第一に"},{"en":"in the first place","ja":"まず第一に"},{"en":"back and forth","ja":"行ったり来たり、前後［左右］に"},{"en":"up and down","ja":"行ったり来たり、上下に"},{"en":"at present","ja":"現在は、目下"},{"en":"at the moment","ja":"（現在時制で）現在は、（過去時制で）ちょうどその時"},{"en":"in a word","ja":"要するに、つまり"},{"en":"in short","ja":"つまり、手短に言えば"},{"en":"generally speaking","ja":"一般的に言えば"},{"en":"on the whole","ja":"全体的には、概して"},{"en":"all in all","ja":"全体的には、概して"},{"en":"in principle","ja":"理論的に（は）、原則的に（は）"},{"en":"in theory","ja":"理論上は"},{"en":"at all cost(s)/any cost","ja":"ぜひとも"},{"en":"by all means","ja":"①ぜひとも、必ず ②（承諾の返事として）ぜひどうぞ"},{"en":"as it were","ja":"いわば"},{"en":"so to speak","ja":"いわば"},{"en":"for one's (own) part","ja":"～としては、～に関する限りは"},{"en":"on one's part","ja":"～の側での、～としては"},{"en":"for the present","ja":"当分の間（は）、差し当たり"},{"en":"for the time being","ja":"当分の間（は）、差し当たり"},{"en":"close/near at hand","ja":"（距離・時間的に）すぐ近くに"},{"en":"(just) around the corner","ja":"（距離・時間的に）すぐ近くに"},{"en":"for all ～","ja":"～にもかかわらず"},{"en":"with all ～","ja":"～にもかかわらず"},{"en":"as for ～","ja":"（人・物）～について言えば、～に関する限り"},{"en":"as to ～","ja":"（物）～に関しては"},{"en":"not to mention ～","ja":"～は言うまでもなく"},{"en":"to say nothing of ～","ja":"～は言うまでもなく"},{"en":"be dependent on/upon ～","ja":"～に依存している"},{"en":"be independent of ～","ja":"～から独立している"},{"en":"in order","ja":"整頓されて、順調で、適切で"},{"en":"out of order","ja":"故障して、順序が狂って"},{"en":"look down on/upon ～","ja":"～を見下す"},{"en":"look up to ～","ja":"～を尊敬する"},{"en":"do with ～","ja":"①（couldを伴って）～があればありがたい ②（受動態で）～をすませた、～を縁を切った ③（whatを使った疑問文・否定文で）を処理［処置］する"},{"en":"do without ～","ja":"～なしですます"},{"en":"in/within sight","ja":"見えて、視界に入って"},{"en":"out of sight","ja":"見えなくて、視界から消えて"},{"en":"at one's ease","ja":"くつろいで"},{"en":"ill at ease","ja":"不安で、落ち着かないで"},{"en":"act on/upon ～","ja":"①～に取り組む、～に作用する ②（命令・信念など）に従って行動する"},{"en":"break in ～","ja":"①押し入る、口を挟む ②～を慣らす"},{"en":"break out","ja":"①（火事・戦争などが）起こる ②（汗・吹き出物などが）出る、急にしだす"},{"en":"break up ～","ja":"①ばらばらになる［解散する］、～をばらばらにする［解散させる］ ②（人が）別れる、（関係などが）終わる、～を終わらせる"},{"en":"call for ～","ja":"①～を必要とする、～を求める ②（人）を誘い［迎え］に行く、（物）を取りに行く"},{"en":"call on/upon ～","ja":"①（人）を訪問する ②～に要求する"},{"en":"come across ～","ja":"①～を偶然見つける、～に偶然出会う ②（考えなどが）（相手に）伝わる［理解される］"},{"en":"come to ～","ja":"①～に達する、～に来る ②（～to do）…するようになる③意識を回復する、正気に戻る"},{"en":"give out ～","ja":"①～を配る、～を発する ②（供給物・力などが）尽きる［なくなる］"},{"en":"go by ～","ja":"①（時などが）たつ、通り過ぎる ②～の名で通る［知られる］、～によって行動［判断］する"},{"en":"go off","ja":"①出かける、去る、（電灯などが）消える ②（仕掛けが）作動する、（爆薬が）爆発する、（銃などが）発射される"},{"en":"go on ～","ja":"①（状況などが）続く、（時間が）過ぎる ②（進行形で）起こる、行われる ③（旅行など）に出かける"},{"en":"go out","ja":"①出かける②（灯火などが）消える、気絶する、死ぬ"},{"en":"go over ～","ja":"①～に詳細に目を通す、～を調べる ②～を復習する、～を繰り返す"},{"en":"go with ～","ja":"①～と付き合う、～と一緒に行く ②～に似合う"},{"en":"hold out ～","ja":"①（手など）を差し出す ②（希望など）を抱かせる、持ちこたえる［耐える］"},{"en":"hold up ～","ja":"①～を持ち上げる、～を支える、持ちこたえる ②～を遅らせる ③～に強盗に入る"},{"en":"live on ～","ja":"①～を常食にする ②（～の収入・金額）で生活する ③生き続ける"},{"en":"look to ～","ja":"①～の方を見る、～に気をつける ②～に頼る、～を当てにする"},{"en":"look up ～","ja":"①（辞書などで）～を調べる ②（人）を訪ねる ③（景気などが）上向く［好転する］"},{"en":"put out ～","ja":"①（火・明かりなど）を消す ②～を出す"},{"en":"settle down","ja":"①定住する、落ち着く ②（腰を据えて）始める"},{"en":"stand by ～","ja":"①傍観する、待機する ②～を支持［擁護］する、（約束など）を守る"},{"en":"stand for ～","ja":"①～意味する、～の略である ②（否定文・疑問文で）～を許容する、を我慢する"},{"en":"take in ～","ja":"①～を取り入れる、～を理解する ②～をだます ③～を見物をする"},{"en":"take on ～","ja":"①～を引き受ける、～を雇う ②（様相・色・性質など）を呈する［帯びる］"},{"en":"take to ～","ja":"（習慣的に）～を始める、～にふける"},{"en":"take up ～","ja":"①（場所・時間）を取る、～を取り上げる ②（仕事・趣味など）を始める"},{"en":"turn down ～","ja":"①～を却下［拒絶］する ②（音量・火力など）を小さくする"},{"en":"turn in ～","ja":"①～を提出する ②～を引き渡す、～を返却する"},{"en":"make for ～","ja":"①～のほうへ進む ②～に寄与する［役立つ］"},{"en":"make out ～","ja":"①（通例canを伴い、否定文・疑問文で）～を理解する ②（通例canを伴って）～を見分ける ③（書類・小切手など）を作成する"},{"en":"meet with ～","ja":"①～を受ける、～を経験する ②～と（約束して）会う、～と会見する"},{"en":"provide for ～","ja":"①～を扶養する ②～に備える、（法律が）～を規定する"},{"en":"put down ～","ja":"①～を置く ②～を鎮める［抑える］"},{"en":"run over ～","ja":"①（車が）～をひく ②（～から）あふれる"},{"en":"set out ～","ja":"①出発する ②～し始める ③～を並べる、～を設計する"},{"en":"be due to do","ja":"①～のため［結果］である ②～する予定である"},{"en":"up to ～","ja":"①～まで ②～次第である、～の責任である ③（悪いこと）をしようとしている"},{"en":"at large","ja":"①（名詞の前に置いて）一般の、全体としての ②逃走中で、逮捕されないで"},{"en":"in effect","ja":"①事実上、実際は ②（法律などが）実施されて"},{"en":"all but ～","ja":"①～も同然、ほとんど～ ②～以外すべて"},{"en":"at length","ja":"①詳細に、長々と②とうとう、ついに"},{"en":"next to ～","ja":"①（場所・位置）～の次の［に］ ②（否定を表す語の前に置いて）ほとんど～"},{"en":"on end","ja":"①連続して ②直立して、垂直にして"},{"en":"by way of ～","ja":"①～経由で ②～として、～のつもりで（の）"},{"en":"add to ～","ja":"～を増やす"},{"en":"adapt to ～","ja":"（環境など）に順応する［慣れる］"},{"en":"object to ～","ja":"～に反対する"},{"en":"admit to ～","ja":"～を認める［告白する］"},{"en":"conform to/with ～","ja":"～と一致する、～に従う［合わせる］"},{"en":"resort to ～","ja":"（手段など）に訴える［頼る］"},{"en":"keep to ～","ja":"～に沿って進む、～から離れない、～に従う"},{"en":"get to ～","ja":"①～に到着する ②～できる、～するようになる"},{"en":"adhere to ～","ja":"（主義・規則など）に忠実に従う、～にくっつく"},{"en":"reflect on/upon ～","ja":"～を熟考［反省］する"},{"en":"decide on/upon ～","ja":"～を（どれにするか）決める、（複数の選択肢から）～に決める"},{"en":"fall on/upon ～","ja":"（責任・仕事などが）～に降りかかる、（休日などが）～に当たる"},{"en":"feed on ～","ja":"～を常食［餌］にする"},{"en":"run into ～","ja":"～に偶然出会う、～を偶然見つける、～にぶつかる"},{"en":"break into ～","ja":"①～に侵入する②急に～をしだす"},{"en":"enter into ～","ja":"（契約など）を取り結ぶ、（議論など）を始める"},{"en":"burst into ～","ja":"急に～をしだす、突然～に入る"},{"en":"dispose of ～","ja":"～を処分する、～を平らげる"},{"en":"approve of ～","ja":"～に賛成する、～を承認する"},{"en":"boast of/about ～","ja":"～を自慢する、～を誇らしげに話す"},{"en":"become of ～","ja":"（what, whatever を主語にして）\n～はどうなるか"},{"en":"derive from ～","ja":"～に由来する、～から出ている"},{"en":"aim at ～","ja":"～を目指す、～を狙う"},{"en":"interfere with ～","ja":"～の邪魔をする、～を妨げる"},{"en":"part with ～","ja":"（物）を（しぶしぶ）手放す"},{"en":"long for ～","ja":"～を切望する"},{"en":"send for ～","ja":"（人）を呼ぶ、（物）を取り寄せる"},{"en":"go about ～","ja":"～に取りかかる、～に精を出す"},{"en":"run across ～","ja":"①～を偶然見つける、～に偶然で会う ②～を走って横切る"},{"en":"end up","ja":"最後には～になる"},{"en":"use up ～","ja":"～を使い果たす"},{"en":"sum up ～","ja":"（～を）要約する、～を合計する"},{"en":"clear up ～","ja":"（天候が）晴れる、（疑念・不明点など）を明らかにする"},{"en":"tie up ～","ja":"（人）を拘束する、～を固く縛る、提携する"},{"en":"cheer up ～","ja":"元気づく、～を元気づける［応援する］"},{"en":"blow up ～","ja":"爆発する、かっとなる、～を爆破する"},{"en":"call up ～","ja":"（～に）電話をかける、（記憶・勇気など）を呼び起こす"},{"en":"shut up ～","ja":"話をやめる、～を散らせる"},{"en":"step up ～","ja":"①近づく、（壇上などに）上がる ②（量・速度など）を増す、（活動など）を促進する"},{"en":"cut down/back (on) ～","ja":"～（の量）を減らす、～を切り詰める"},{"en":"slow down ～","ja":"（～の）速度を落とす、ペースが落ちる"},{"en":"break down ～","ja":"①～を分解する、～を壊す ②故障する、取り乱す、肉体的［精神的］に参る"},{"en":"hand down ～","ja":"～を（子孫［後世］に）伝える"},{"en":"take down ～","ja":"～を書き留める、（建築など）を取り壊す"},{"en":"burn down ～","ja":"～を全焼させる、（建物が）全焼する"},{"en":"come out","ja":"現れる、ばれる、出版される"},{"en":"run out","ja":"使い果たす、尽きる"},{"en":"speak out/up","ja":"はっきり［思い切って］話す"},{"en":"drop out","ja":"脱落する、中途退学する"},{"en":"sort out ～","ja":"～を整理する、～を処理する"},{"en":"wear out ～","ja":"～をすり減らす［疲れ果てさせる］、すり減らす"},{"en":"roll out ～","ja":"（新製品）を製造［発売］する、～を転がして出す、転がり出る"},{"en":"iron out ～","ja":"（問題など）を解決［調節する］"},{"en":"set off ～","ja":"出発する、～を引き起こす"},{"en":"show off ～","ja":"（～を）見せびらかす"},{"en":"keep off ～","ja":"～を近づけない、～に近づかない、～を慎む"},{"en":"give off ～","ja":"（光・音・においなど）を発する"},{"en":"break off ～","ja":"（～を）急にやめる、～を切り離す"},{"en":"take over ～","ja":"（～を）引き継ぐ、～を支配する"},{"en":"put in ～","ja":"①（物・言葉など）を差し入れる［加える］、（設備など）を取り付ける ②（労力・時間・金など）を注ぎ込む［投入する］"},{"en":"drop in","ja":"（口調で）ちょっと立ち寄る"},{"en":"cut in","ja":"（人・車が）割り込む"},{"en":"pass on ～","ja":"（物・情報など）を次に回す［伝える］"},{"en":"give away ～","ja":"（秘密など）を漏らす、～をただでやる、～を配る"},{"en":"adjust (A) to B","ja":"（Aを）Bに合わせて調節する"},{"en":"compare A with/to B","ja":"AとBを比較する、AをBにたとえる"},{"en":"expose A to B","ja":"AをBにさらす"},{"en":"leave A (up) to B","ja":"AをBに任せる、AをBに残す"},{"en":"attach A to B","ja":"AをBに取りつける［付与する］"},{"en":"attribute A to B","ja":"AをBのせい［結果］と考える"},{"en":"owe A to B","ja":"A（恩・義務など）をBに負っている、A（金）をBに借りている"},{"en":"confine A to B","ja":"AをBに限定する、AをBに閉じ込める"},{"en":"liken A to B","ja":"AをBにたとえる"},{"en":"keep A from B","ja":"AにBをさせない、AをBから守る"},{"en":"discourage A from B","ja":"A（人）にBを思いとどまらせる"},{"en":"forbid A from B","ja":"A（人）にBを禁止する"},{"en":"prohibit A from B","ja":"A（人）にBを禁止する"},{"en":"order A from B","ja":"BにAを注文する"},{"en":"substitute A for B","ja":"Bの代わりにAを使う"},{"en":"exchange A for B","ja":"AをBと交換する"},{"en":"blame A for B","ja":"BのことでAを非難する、BをAのせいにする"},{"en":"punish A for B","ja":"BのことでAを罰する"},{"en":"forgive A for B","ja":"BのことでAを許す"},{"en":"deprive A of B","ja":"AからBを奪う"},{"en":"rob A of B","ja":"（暴力・脅迫などで）AからBを奪う"},{"en":"cure A of B","ja":"AのBを治す、A（人）のB（悪癖など）を取り除く"},{"en":"accuse A of B","ja":"BのことでAを非難［告訴］する"},{"en":"suspect A of B","ja":"BについてAを疑う"},{"en":"assure A of B","ja":"A（人）にB（物・事）を請け合う［保証する］"},{"en":"transform A into/to B","ja":"AをBに変える［変質させる］"},{"en":"talk A into B","ja":"A（人）を説得してBをさせる"},{"en":"present A with B","ja":"AにBを贈る［与える］"},{"en":"diagnose A as B","ja":"AをBと診断する"},{"en":"strike A as B","ja":"A（人）にBの印象を与える"},{"en":"congratulate A on/for B","ja":"BのことでAを祝う"},{"en":"name A after B","ja":"AをBにちなんで名づける"},{"en":"make an effort/efforts","ja":"努力する"},{"en":"make way","ja":"道をあける"},{"en":"live/lead a ～ life","ja":"［～］の生活をする"},{"en":"make/earn a/one's living","ja":"生計を立てる"},{"en":"take one's place","ja":"①いつもの席に着く、特定の地位を占める ②～に取って代わる"},{"en":"take turns","ja":"交代でする"},{"en":"take a chance/chances","ja":"思い切ってやってみる、賭ける"},{"en":"take shape","ja":"（はっきりした）形をとる"},{"en":"take/have a seat","ja":"着席する"},{"en":"take a risk/risks","ja":"（あえて）危険を冒す、賭ける"},{"en":"shake hands","ja":"握手する"},{"en":"change hands","ja":"持ち主が変わる"},{"en":"have a say (in ～)","ja":"（～に）発言権［発言力］を持つ"},{"en":"have/got one's (own) way","ja":"思い通りにする"},{"en":"keep/hold one's temper","ja":"冷静さを保つ"},{"en":"take advantage of ～","ja":"～を利用する、～につけ込む"},{"en":"take control of ～","ja":"～を制御［管理・支配］する"},{"en":"make use of ～","ja":"～を利用する"},{"en":"make fun of ～","ja":"～をからかう"},{"en":"make friends with ～","ja":"～と親しくなる"},{"en":"make much of ～","ja":"～を重要視する、（否定文で）～を理解する"},{"en":"have difficulty (in) doing","ja":"～するのが困難である、苦労しながら～する"},{"en":"have access to ～","ja":"～を利用できる、～に近づける"},{"en":"have an influence/effect on ～","ja":"～に影響を与える"},{"en":"have a liking for ～","ja":"～を好む"},{"en":"give rise to ～","ja":"～を引き起こす［生む］"},{"en":"give birth to ～","ja":"～を産む、～の原因になる"},{"en":"find one's way to ～","ja":"～へたどり着く、～まで道を探しながら進む"},{"en":"keep an eye on ～","ja":"～に気を付けている、～から目を離さない"},{"en":"fall victim to ～","ja":"～の犠牲［餌食］になる"},{"en":"catch sight of ～","ja":"～を見つける［見かける］"},{"en":"put emphasis/stress on/upon ～","ja":"～を強調［重視］する"},{"en":"be related to ～","ja":"～と関係がある、～と婚姻関係がある"},{"en":"be similar to ～","ja":"～に似ている"},{"en":"be subject to ～","ja":"～を受けやすい、～に服従している"},{"en":"be superior to ～","ja":"～より優れている"},{"en":"be sensitive to ～","ja":"～に敏感である"},{"en":"be accustomed to ～","ja":"～に慣れている"},{"en":"be contrary to ～","ja":"～に反している"},{"en":"be indifferent to/toward(s) ～","ja":"～に無関心［無頓着］である"},{"en":"be preferable to ～","ja":"～より好ましい［優れている］"},{"en":"be dedicated to ～","ja":"（仕事・目的など）に打ち込んでいる"},{"en":"be peculiar to ～","ja":"～に特有である"},{"en":"be prone to ～","ja":"～になりやすい"},{"en":"be identical to/with ～","ja":"～と同じ［同一］である"},{"en":"be involved in ～","ja":"～に携わっている［関係している］、～に熱中している"},{"en":"be absorbed in ～","ja":"～に熱中している"},{"en":"be lacking in ～","ja":"～に欠けている"},{"en":"be versed in ～","ja":"～に精通［熟達］している"},{"en":"be abundant in ～","ja":"～が豊富である"},{"en":"be busy with ～","ja":"～で忙しい"},{"en":"be popular with/among ～","ja":"～に人気がある"},{"en":"be equipped with ～","ja":"～を備えている"},{"en":"be content/contented with ～","ja":"～に満足している"},{"en":"be confronted with/by ～","ja":"（困難・問題など）に直面している"},{"en":"be acquainted with ～","ja":"～に精通している、～と知り合いである"},{"en":"be characteristic of ～","ja":"～に特有である、いかにも～らしい"},{"en":"be worthy of ～","ja":"～に値する［ふさわしい］"},{"en":"be ignorant of ～","ja":"～を知らない"},{"en":"be confident of/about ～","ja":"～を確信している"},{"en":"be considerate of/to ～","ja":"～に対して思いやりのある"},{"en":"be guilty of ～","ja":"～について有罪である、～を犯している"},{"en":"be convinced of ～","ja":"～を確信している"},{"en":"be tolerant of ～","ja":"～に対して寛大である"},{"en":"be wary of ～","ja":"～に用心深い"},{"en":"be suitable for/ to ～","ja":"～に適している、（目的など）に合っている"},{"en":"be grateful (to A) for B","ja":"Bのことで（Aに）感謝している"},{"en":"be particular about/over ～","ja":"～についてやかましい［気難しい］"},{"en":"come down with ～","ja":"（病気）にかかる"},{"en":"come into being/existence","ja":"出現する、生まれ出る"},{"en":"come true","ja":"（夢・予言などが）実現する"},{"en":"do ～ good","ja":"（人）のためになる［役に立つ］"},{"en":"get in touch (with ～)","ja":"（～と）連絡を取る"},{"en":"go blind","ja":"失明する"},{"en":"have A in common (with B)","ja":"（Bと）共通にAを持っている"},{"en":"keep/bear ～ in mind","ja":"～を心に留めておく［忘れない］"},{"en":"look back on/upon/to ～","ja":"～を回顧［回想］する"},{"en":"make it","ja":"成功する、うまくやる、間に合う、出席する"},{"en":"put into practice/operation","ja":"～を実行［実施］する"},{"en":"sign up for ～","ja":"（受講など）の届け出をする、～に加わる"},{"en":"take ～ by surprise","ja":"～を驚かす、～の不意を打つ"},{"en":"in terms of ～","ja":"～の観点から、～に換算して"},{"en":"in contrast to/with ～","ja":"～と著しく違って、～と対照をなして"},{"en":"in danger of ～","ja":"～の危険があって"},{"en":"in need of ～","ja":"～を必要として"},{"en":"in response to ～","ja":"～に応じて［答えて］"},{"en":"in favor of ～","ja":"～に賛成して、～のほうを選んで"},{"en":"in (the) face of ～","ja":"～に直面して、～にもかかわらず"},{"en":"in charge of ～","ja":"～を預かって［管理して］"},{"en":"in relation to ～","ja":"～と比べて、～に関連して"},{"en":"in place of ～","ja":"～の代わりに"},{"en":"in the presence of ～","ja":"～のいるところ［面前］で"},{"en":"in honor of ～","ja":"～に敬意を表して、～のために"},{"en":"in (the) light of ～","ja":"～から見て、～を考慮して"},{"en":"in harmony with ～","ja":"～と調和［一致］して"},{"en":"in exchange for ～","ja":"～と交換に"},{"en":"for the sake of ～","ja":"～のために"},{"en":"for fear of ～","ja":"～を恐れて"},{"en":"for lack/want of ～","ja":"～がない［不足している］ために"},{"en":"at the expense of ～","ja":"～を犠牲にして"},{"en":"at (the) sight of ～","ja":"～を見て"},{"en":"at the mercy of ～","ja":"～のなすがままになって"},{"en":"as opposed to ～","ja":"～ではなく、～とは対照的に"},{"en":"by means of ～","ja":"～を用いて、～によって"},{"en":"by/in virtue of ～","ja":"～のおかげで、～によって"},{"en":"on/in behalf of ～","ja":"～を代表して、～のために"},{"en":"on a/the charge of ～","ja":"～の容疑［罪］で"},{"en":"with/in regard to ～","ja":"～に関して（は）"},{"en":"in part","ja":"一部には、幾分（かは）"},{"en":"in turn","ja":"徐々に、（立ち代わって）次に（は）"},{"en":"in place","ja":"あるべき場所に、きちんと整って、用意ができて"},{"en":"in practice","ja":"実際には"},{"en":"in demand","ja":"需要があって、必要とされて"},{"en":"in the meantime/meanwhile","ja":"その間（に）、一方で、話は変わって"},{"en":"in all likelihood","ja":"十中八九、おおかた"},{"en":"at work","ja":"①職業で、仕事中で[の] ②作用して、運転［作動］中で[の]"},{"en":"at risk","ja":"危険な状態で"},{"en":"at a loss","ja":"途方に暮れて、困って、損をして"},{"en":"at first sight","ja":"一見したところでは、ひと目で[の]"},{"en":"at heart","ja":"心の底では、本当は"},{"en":"at intervals","ja":"時折、あちこちに"},{"en":"on the/an average","ja":"平均して"},{"en":"on a ～ basis","ja":"～の基準[原則]で"},{"en":"on a ～ scale","ja":"～な規模で[の]"},{"en":"on display","ja":"陳列中で[の]、展示して"},{"en":"on the increase","ja":"増加中で"},{"en":"on (one's) guard","ja":"警戒して"},{"en":"to ～ extent/degree","ja":"～の程度に"},{"en":"to one's surprise","ja":"～が驚いたことには"},{"en":"to the point","ja":"要を得た、適切な"},{"en":"to make matters/things worse","ja":"さらに悪いことに"},{"en":"to one's advantage","ja":"（人）に都合がよい[よく]、（人）に有利な[に]"},{"en":"from ～ on/onward(s)","ja":"～から以後は"},{"en":"from ～ point of view","ja":"～の視点から（は）"},{"en":"for sure/certain","ja":"確かに"},{"en":"under way","ja":"（計画などが）進行中で"},{"en":"under construction","ja":"建築[工事]中で"},{"en":"of late","ja":"最近、近ごろ"},{"en":"of one's own accord/free will","ja":"自分の意志で、自発的に"},{"en":"without fail","ja":"必ず、間違いなく"},{"en":"behind the times","ja":"時代遅れの[で]"},{"en":"beyond description","ja":"言葉では表現できないほどの[に]"},{"en":"out of breath","ja":"息切れして"},{"en":"out of character","ja":"（その人の）性格に合わない[調和しない]、役に不向きな"},{"en":"no matter how/what/when, etc …","ja":"どんなに[何が・いつなど]…でも"},{"en":"what we call ～","ja":"いわゆる～"},{"en":"what ～ is","ja":"現在の～"},{"en":"～ will do","ja":"～は役に立つ[用が足りる]"},{"en":"may well do","ja":"おそらく…するだろう、…するのはもっともだ"},{"en":"might (just) as well do","ja":"…するのも同じだ、（気は進まないが）～してもよい、（どうせなら）…するほうがいい"},{"en":"cannot ～ too …","ja":"いくら～してもしすぎることはない"},{"en":"the last ～ to do","ja":"最も…しそうにない～"},{"en":"have A to do with B","ja":"ＢとＡの関係がある"},{"en":"to tell (you) the truth","ja":"実を言えば"},{"en":"needless to say","ja":"言うまでもなく"},{"en":"feel like doing","ja":"…したい気がする"},{"en":"be used to doing","ja":"…することに慣れている"},{"en":"cannot help doing","ja":"…せずにはいられない、…せざるを得ない"},{"en":"come close/near to doing","ja":"もう少しで…しそうになる"},{"en":"with a view to doing","ja":"…する目的で"},{"en":"joking/kidding aside","ja":"冗談はさておき"},{"en":"catch ～ doing","ja":"（人）が…しているところを見つける[捕らえる]"},{"en":"speaking/talking of ～","ja":"～と言えば"},{"en":"judging from/by ～","ja":"～から判断すると"},{"en":"that is (to say)","ja":"すなわち、つまり"},{"en":"in itself","ja":"それ自体では、本来は"},{"en":"to oneself","ja":"①自分だけ（が使うの）に ②自分自身に、心の中に[で]"},{"en":"one after another","ja":"次々に"},{"en":"none other than ～","ja":"ほかならぬ～、まさに～"},{"en":"would/had rather do (than ～)","ja":"（～するよりも）むしろ…したい"},{"en":"as many/much as ～","ja":"～もの数[量]の、～と同数[量]の"},{"en":"as good as ～","ja":"～も同然、ほとんど～"},{"en":"as ～ as any","ja":"誰[どれ]にも劣らず～"},{"en":"all the + 比較級","ja":"ますます～、それだけいっそう～"},{"en":"that much + 比較級","ja":"（口語で）それだけいっそう～"},{"en":"much/still less ～","ja":"（否定文中で）まして～はない"},{"en":"what is more","ja":"さらに、おまけに"},{"en":"know better (than to do)","ja":"（…しないだけの）分別がある、（…するほど）ばかではない"},{"en":"Couldn't be better.","ja":"最高です、これ以上良い状態はあり得ない"},{"en":"worse still/yet","ja":"いっそう悪いことに"},{"en":"to the best of one's knowledge","ja":"（人）の知る限り（では）"},{"en":"not ～ (in) the least","ja":"まったく～ない"},{"en":"to the full/fullest","ja":"心ゆくまで、十分に"},{"en":"by far","ja":"はるかに、ずっと"},{"en":"provided (that) …","ja":"もし…ならば"},{"en":"every/each time …","ja":"…するたびに"},{"en":"the moment/minute …","ja":"…するとすぐに"},{"en":"when it comes to ～","ja":"～のこととなると、～をする段になると"},{"en":"as it is","ja":"①（通例、仮定法的な表現の直後で）実際のところは ②（事物が）あるがままの（に）"},{"en":"as/so far as ～ be concerned","ja":"～に関する限り"},{"en":"as follows","ja":"次のとおり"},{"en":"as is often the case (with～)","ja":"（～に関して）よくあることだが"},{"en":"as ～ go","ja":"一般の～と比べると、～としては"},{"en":"if only …","ja":"①…でありさえすれば ②（現在・未来の願望を表して）…でさえあればなあ"},{"en":"if it were not for ～","ja":"もし～がなければ"},{"en":"(in) the way …","ja":"…から判断すると、…のように、…のやり方で"},{"en":"～ to death","ja":"死ぬまで～、ひどく～"},{"en":"with ease","ja":"容易に"},{"en":"believe it or not","ja":"まさかと思うような話だが"},{"en":"not all that ～","ja":"それほど～ではない"},{"en":"the 比較級 ～, the 比較級 …","ja":"～であればあるほど、いっそう…だ"},{"en":"(Just) As ～, so …","ja":"ちょうど～であるように…だ"},{"en":"(It is) No wonder (that) …","ja":"…なのは当然だ"},{"en":"It happens that …","ja":"たまたま…だ、折良く[運悪く]…だ"},{"en":"(The) Chances are (that) …","ja":"ひょっとしたら[たぶん]…だろう"},{"en":"There is no doing","ja":"…することはできない"},{"en":"not so much A as B","ja":"AというよりむしろB"},{"en":"hardly ～ when/before …","ja":"～するかしないかのうちに…する"},{"en":"never do without ～","ja":"…すれば必ず～する"},{"en":"It goes without saying that …","ja":"…なのは言うまでもない"},{"en":"(It is) True ～, but …","ja":"確かに～だが、…だ"},{"en":"It is not long before …","ja":"…するのに長くはかからない、間もなく…する"},{"en":"It is (high) time (that) …","ja":"（とっくに）…してよいころだ"},{"en":"no sooner ～ than …","ja":"～するやいなや…する"},{"en":"It is no use doing","ja":"…しても無駄である"},{"en":"It is not until ～ that …","ja":"～になって初めて…する"},{"en":"A is to B what C is to D","ja":"AのBに対する関係はCのDに対する関係に等しい"},{"en":"not so much as do","ja":"…さえしない"},{"en":"Nothing is more A than B.","ja":"BほどAなものはない"},{"en":"the former A, the latter B","ja":"前者はA、後者はB"},{"en":"A is one thing, and B is another","ja":"AとBとは別の物である"},{"en":"All one has to do is (to) do","ja":"（人は）はただ…すればよい"},{"en":"Suffice (it) to say that …","ja":"…と言えば十分である"},{"en":"be to do","ja":"①（予定・運命）…することになっている ②（義務）…すべきである ③（意図・目的）…するつもりである ④（可能）…できる"},{"en":"be forced to do","ja":"やむなく…する"},{"en":"be supposed to do","ja":"…することになっている、（世間で）…と考えられている"},{"en":"be to blame (for ～)","ja":"（～に対して）責めを負うべきである[責任がある]"},{"en":"be entitled to ～","ja":"～の資格がある"},{"en":"tend to do","ja":"…する傾向がある、…しがちである"},{"en":"happen to do","ja":"偶然…する"},{"en":"manage to do","ja":"なんとか…する[やり遂げる]"},{"en":"can afford to do","ja":"（経済的・時間的に）…する余裕がある"},{"en":"bother to do","ja":"わざわざ…する"},{"en":"come to an end/a close","ja":"終わる"},{"en":"go so far as to do","ja":"…しさえする"},{"en":"have no (other) choice but to do","ja":"…するよりほかに仕方がない"},{"en":"spend ～ (in) doing","ja":"…して（時間・期間）を過ごす"},{"en":"make a point of doing","ja":"必ず…するよう努力する、…することを重視する"},{"en":"remain to be seen","ja":"（結果などは）未定である"},{"en":"bring oneself to do","ja":"…する気持ちになる"},{"en":"take the trouble to do","ja":"わざわざ[労を惜しまず]…する"},{"en":"leave nothing to be desired","ja":"申し分ない"},{"en":"in order/so as to do","ja":"…するために"},{"en":"in that …","ja":"…の点で、…のゆえに"},{"en":"as/so long as …","ja":"（条件・時間的限度）…である限り"},{"en":"see (to it) that …","ja":"…するように取り計らう[気をつける]"},{"en":"so that ～ can do","ja":"～が…できるように"},{"en":"by the time …","ja":"…までに（は）"},{"en":"～, so (that) …","ja":"～だ、その結果…だ"},{"en":"now that …","ja":"…である以上、今はもう…なので"},{"en":"in case …","ja":"①[主に米]もし…ならば ②[主に英]…するといけないから、…に備えて"},{"en":"given (that) …","ja":"…を考慮すれば、…なので"},{"en":"even as …","ja":"まさに…するときに"},{"en":"if any","ja":"もしあるとしても、もしあれば"},{"en":"on (the) condition (that) …","ja":"…という条件で、…ならば"},{"en":"lest ～ (should) …","ja":"～が…しないように、～が…するといけないから"},{"en":"what with A and B","ja":"AやらBやらで"},{"en":"A, and B at that","ja":"Aだ、その上Bでもある"},{"en":"inasmuch/in as much as …","ja":"…だから"},{"en":"just about","ja":"ほぼ、かろうじて"},{"en":"go ahead","ja":"先に行く、（ためらわず）進む"},{"en":"check out ～","ja":"①（魅力的なので）～を見てみる、～を調査[点検]する ②（図書館などから）～借り出す"},{"en":"hold on","ja":"①持ちこたえる、頑張る ②待つ、電話を切らずにいる ③しっかりつかむ"},{"en":"hang up ～","ja":"（電話を）切る、（衣服など）を掛ける、～を中断する"},{"en":"give ～ a try","ja":"～を試してみる"},{"en":"give ～ a hand","ja":"～に手を貸す"},{"en":"call back ～","ja":"～に折り返し電話する、～に電話をかけ直す、～を呼び戻す"},{"en":"from scratch","ja":"最初から"},{"en":"see ～ off","ja":"～を見送る"},{"en":"hold one's breath","ja":"息を止める、（期待して）息をひそめて待つ"},{"en":"at/behind the wheel","ja":"（車・船などを）運転して"},{"en":"having said that","ja":"そうは言ったものの"},{"en":"on the dot","ja":"（口語で）時間ちょうどに、きっかりに"},{"en":"ask ～ a favor","ja":"～にお願いをする[頼む]"},{"en":"drive at ～","ja":"（whatを目的語に）～のつもりである"},{"en":"lose (one's) face","ja":"面目を失う"},{"en":"before one knows it","ja":"あっという間に"},{"en":"stick around/about","ja":"（口語で）（帰らずに）そこらで待つ"},{"en":"call it a day","ja":"その日の仕事を終える"},{"en":"have (a) good command of ～","ja":"（外国語など）を自由に使いこなす力がある"},{"en":"keep one's fingers crossed","ja":"（幸運[成功]を）祈る"},{"en":"pay a visit (to ～）","ja":"（～を）訪問する"},{"en":"serve ～ right","ja":"～にとって当然の報いである"},{"en":"go to the polls","ja":"投票に行く"},{"en":"take office","ja":"（公職に）就任する"},{"en":"turn a blind eye to ～","ja":"～を見て見ぬふりをする"},{"en":"last but not least","ja":"最後になったが"},{"en":"know ～ by sight","ja":"～の顔を（見て）知っている"},{"en":"pull ～'s leg","ja":"（口調で）～をからかう[かつぐ]"},{"en":"the bottom line","ja":"（口語で）要点、（決算書の最下行の）数字、最終結果"},{"en":"have/take a look (at ～)","ja":"（～を）見る"},{"en":"What ～ like?","ja":"～はどんなものか"},{"en":"What ～ for?","ja":"どうして～か何の目的で～か"},{"en":"have no idea","ja":"見当がつかない"},{"en":"could use ～","ja":"（口語で）～があればありがたい、～が欲しい"},{"en":"How come SV?","ja":"どうして…か [= Why(…)?]"},{"en":"take one's time","ja":"（時間をかけて）ゆっくりやる、自分のペースでやる"},{"en":"take it easy","ja":"のんびり構える"},{"en":"My pleasure.","ja":"（お礼の言葉に対して）どういたしまして"},{"en":"make oneself understood","ja":"自分の言うことを相手に分からせる"},{"en":"see much of ～","ja":"～によく会う"},{"en":"think again","ja":"考え直す、考えを変える"},{"en":"help oneself to ～","ja":"～を自由に取る"},{"en":"I'm afraid not.","ja":"残念ながらそうではないようです"},{"en":"treat A to B","ja":"A(人)にB(食事など)をおごる"},{"en":"be fed up with ～","ja":"～にうんざりしている"},{"en":"come to think of it","ja":"考えてみると、そういえば"},{"en":"think much/highly of ～","ja":"～を高く評価する、～を尊敬[尊重]する"},{"en":"Legend has it (that) …","ja":"伝説によると…ということだ"},{"en":"Here we are.","ja":"さあ着いた"},{"en":"hit it off (with～)","ja":"（人と）仲良くなる[意気投合する]"},{"en":"watch one's step","ja":"足元[言動]に注意する"},{"en":"give one's regard to ～","ja":"（伝言・手紙などで）～によろしくと伝える"},{"en":"You're kidding (me).","ja":"冗談でしょうまさか"},{"en":"be susceptible to ～","ja":"～の影響を受けやすい、～に感染しやすい"},{"en":"be at odds (with ～)","ja":"（～と）食い違っている、（～と）反目し合っている"},{"en":"be committed to ～","ja":"～に献身する、～と固く約束する[誓う]"},{"en":"be here to stay","ja":"定着している"},{"en":"be liable to do/to ～","ja":"…しがちである/～にかかりやすい"},{"en":"be intent on/upon ～","ja":"～に懸命[熱心]である"},{"en":"be no match for ～","ja":"とても～にはかなわない"},{"en":"be vulnerable to ～","ja":"（病気・誘惑など）に弱い、（非難・攻撃など）を受けやすい"},{"en":"be eligible for ～","ja":"～の資格がある"},{"en":"be worth doing","ja":"…する価値がある"},{"en":"be out to do","ja":"…しようと狙っている"},{"en":"be all ears","ja":"一心を耳に傾けている"},{"en":"be beside oneself (with ～)","ja":"（～で）我を忘れる、（～に）夢中である"},{"en":"be cut out to be ～","ja":"～に向いている[適している]"},{"en":"be (all) the rage","ja":"（大）流行している"},{"en":"account for ～","ja":"①～の説明となる、～の理由を説明する ②（割合など）を占める"},{"en":"allow for ～","ja":"～を可能にする、～を考慮に入れる"},{"en":"settle for ～","ja":"（不十分ながら）～で我慢する"},{"en":"yearn for ～","ja":"～を恋しがる、～にあこがれる"},{"en":"count for ～","ja":"～の価値[重要性]を持つ"},{"en":"cope with ～","ja":"～をうまく処理する、～に対処する"},{"en":"coincide with ～","ja":"～と一致する、～と同時に起こる"},{"en":"comply with ～","ja":"（規則・命令など）に従う[応じる]"},{"en":"dispense with ～","ja":"～なしですます"},{"en":"attend to ～","ja":"～を処理する、～に注意を払う、～の世話をする"},{"en":"aspire to ～","ja":"～を熱望する"},{"en":"submit to ～","ja":"～に屈する[服従する]"},{"en":"consent to ～","ja":"～に同意する"},{"en":"deal in ～","ja":"（商品）を取り扱う、（仕事など）に従事する"},{"en":"persist in ～","ja":"～に固執する、～をやり直す"},{"en":"indulge in ～","ja":"思う存分～をする、（快楽など）にふける"},{"en":"embark on/upon ～","ja":"（事業・計画など）に乗り出す、～を始める"},{"en":"dwell on/upon ～","ja":"①～を詳しく述べる[書く] ②～をくよくよ[つくづく]考える、～に拘る"},{"en":"tell on/upon ～","ja":"～に（悪く）影響する、～にこたえる"},{"en":"refrain from ～","ja":"～を慎む"},{"en":"discriminate against ～","ja":"～を差別する"},{"en":"abide by ～","ja":"（法など）に従う、（約束など）を守る"},{"en":"work out ～","ja":"①（問題などが）うまくいく、～を計画する、～を解決する、～の答を出す ②運動する"},{"en":"rule out ～","ja":"（可能性など）を排除する、～を認めない"},{"en":"single out ～","ja":"～を（１つだけ）選び出す"},{"en":"pass out","ja":"気絶する、酔いつぶれる"},{"en":"miss out on ～","ja":"（好機など）を逃す、～を取り逃す"},{"en":"wind up ～","ja":"～を終わりにする、終わる"},{"en":"pull up ～","ja":"①～を引き抜く[引き上げる]、（いすなど）を引き寄せる②（車などが）止まる、（車など）を止める"},{"en":"throw up ～","ja":"①～をさっと上げる、～を投げ上げる ②（食べた物を）吐く、～を吐く"},{"en":"round up ～","ja":"～を寄せ集める、～を検挙[逮捕]する"},{"en":"catch on","ja":"①（ファッション・考えなどが）人気が出る[流行する] ②理解する、気づく"},{"en":"get away with ～","ja":"①（罰を受けずに）～をうまくやる ②～を持ち逃げする"},{"en":"shy away (from ～)","ja":"（～を）避ける[敬遠する]"},{"en":"hang around/about/round","ja":"ぶらつく、付き合う"},{"en":"get down to ～","ja":"（仕事・問題など）に本気で取り掛かる"},{"en":"let down ～","ja":"～を失望させる"},{"en":"pull off ～","ja":"[口語で]（困難なこと）をやってのける"},{"en":"follow through (on/with ～)","ja":"（～を）やり遂げる"},{"en":"find oneself ～","ja":"（気がつくと）～にいる[～である]"},{"en":"make do (with～)","ja":"（代用品などで）間に合わせる"},{"en":"make good ～","ja":"①成功する②（約束など）を果たす、（損害など）を償う"},{"en":"make (both) ends meet","ja":"収入内でやりくりする"},{"en":"make believe (that …)","ja":"（…という）ふりをする"},{"en":"take ～ for granted","ja":"～を当然のことと思う"},{"en":"take ～ into account","ja":"～を考慮に入れる"},{"en":"take hold of ～","ja":"～をつかむ、～を捕まえる"},{"en":"take notice (of～)","ja":"（～に）注目する、（～に）気づく"},{"en":"take effect","ja":"①（法律などが）施行[実施]される ②（薬などが）効く"},{"en":"take pains","ja":"骨を折る、努力する"},{"en":"keep track of ～","ja":"（記録するなどして）～を把握する、～の跡をたどる"},{"en":"keep ～ company","ja":"（人）と一緒にいる、（人）の相手をする、（話など）に付き合う"},{"en":"keep abreast of/with ～","ja":"（時勢など）に遅れずついて行く"},{"en":"let go of ～","ja":"～を手放す"},{"en":"live up to ～","ja":"（期待など）に添う[恥じない行動をする]、（義務など）を果たす"},{"en":"look ～ in the eye(s)","ja":"～の目を正視する"},{"en":"hold true","ja":"当てはまる、有効である"},{"en":"come to terms with ～","ja":"～と折り合いがつく、（あきらめて）～を受け入れる"},{"en":"come to light","ja":"明るみに出る、現れる"},{"en":"come of age","ja":"（法律的に）成人になる"},{"en":"come in handy","ja":"役に立つ"},{"en":"fall short of ～","ja":"（目標・基準など）に達しない"},{"en":"go a long way to do","ja":"…するのに大いに役立つ"},{"en":"pave the way for/to ～","ja":"～への準備をする[道を開く]"},{"en":"put ～ to use","ja":"～を利用する"},{"en":"stand to reason","ja":"もっともである、理屈に合う"},{"en":"see/do the sights (of～)","ja":"（～の）観光をする"},{"en":"read between the line","ja":"行間を読む、真意をつかむ"},{"en":"follow suit","ja":"人のまねをする、先例になろう"},{"en":"play a joke on ～","ja":"～に（悪意のない）いたずらをする"},{"en":"get on ～'s nerves","ja":"～の神経にさわる"},{"en":"get/have the better of ～","ja":"～に勝つ、～を出し抜く"},{"en":"get/be even with ～","ja":"（人）に仕返しをする[恨みを晴らす]"},{"en":"hold/keep ～ in check","ja":"～を抑える[食い止める]"},{"en":"have an eye for ～","ja":"～に対する眼識[鑑識力]がある"},{"en":"have ～ on one's mind","ja":"～を気にしている[心配している]"},{"en":"have yet to do","ja":"まだ…していない、これから…しなければならない"},{"en":"dare to do","ja":"思い切って[あえて]…する"},{"en":"impose A on/upon B","ja":"AをBに課す[押しつける]"},{"en":"ascribe A to B","ja":"AをBのせいにする"},{"en":"bring A home to B","ja":"A(ある事柄)をB(人)に痛感させる"},{"en":"a variety of ～","ja":"①（同一種類のもので）いろいろ[さまざま]な～ ②～の１種[１つの型]"},{"en":"a handful of ～","ja":"一握りの～、少数[量]の～"},{"en":"a host of ～","ja":"多数の～"},{"en":"scores of ～","ja":"多数の～"},{"en":"many a/an ～","ja":"多くの～、あまたの～"},{"en":"quite a few ～","ja":"かなりの数の～"},{"en":"all manner of ～","ja":"あらゆる種類の～"},{"en":"(all) on one's own","ja":"（すべて）自分1人で、（すべて）独力で"},{"en":"at issue","ja":"問題の、論争中の[で]"},{"en":"at ～'s disposal","ja":"（人）の自由になって[使えて]"},{"en":"at stake","ja":"危うくなった[て]、賭けられた[て]"},{"en":"(enough) ～ to go around","ja":"全員に行き渡るだけの～"},{"en":"every other ～","ja":"①１つおきの～、～おきに ②残りのすべての～"},{"en":"for a rainy day","ja":"（将来）まさかの時[緊急時]に備えて"},{"en":"in earnest","ja":"本格的に、熱心に"},{"en":"in (good) shape","ja":"調子が良くて"},{"en":"in store (for～)","ja":"（～のために）用意して、（～の身に）降りかかろうとして"},{"en":"in the works","ja":"準備[計画・進行]中で"},{"en":"nothing short of ～","ja":"まさしく～（の）"},{"en":"～ of one's own","ja":"自分自身の～"},{"en":"of one's (own) doing","ja":"（人）が…した"},{"en":"on the move","ja":"（忙しく）移動中の[で]、活躍中の[で]"},{"en":"on the ～ side","ja":"～気味で[の]"},{"en":"out of hand","ja":"①手に負えない ②即座に"},{"en":"out of the question","ja":"あり得ない、不可能で"},{"en":"per capita","ja":"一人当たりの[で]"},{"en":"right as rain","ja":"すっかり健康[正常]で"},{"en":"second to none","ja":"誰[何]にも劣らない"},{"en":"something of a ～","ja":"ちょっとした～、ある程度の～"},{"en":"upward(s) of ～","ja":"～以上（の）"},{"en":"regardless of ～","ja":"～に（も）かかわらず、～に関係なく"},{"en":"in accordance with ～","ja":"～に従って、～に応じて"},{"en":"in proportion to ～","ja":"～に比例して"},{"en":"in the wake of ～","ja":"～の通過後[跡]に、～の結果として"},{"en":"as of ～","ja":"～現在で、～の時点で"},{"en":"but for ～","ja":"～がないならば"},{"en":"on ～ terms with …","ja":"…と～の関係[間柄]で"},{"en":"on the verge of ～","ja":"～をしそうで、～の瀬戸際で"},{"en":"within walking distance of ～","ja":"～から歩いて行けるところに"},{"en":"to the effect that …","ja":"…という趣旨の[で]"},{"en":"a case in point","ja":"適例"},{"en":"the pros and cons","ja":"賛否両論"},{"en":"a white elephant","ja":"無用の長物"},{"en":"the elephant in the room","ja":"誰も触れたがらない話題"},{"en":"part and parcel (of ～)","ja":"（～の）不可分の要素、（～の）最重要部分"},{"en":"all along","ja":"最初からずっと"},{"en":"all too","ja":"とても、非常に"},{"en":"as such","ja":"そういうものとして、それ自体では"},{"en":"(at) first hand","ja":"直接に、じかに"},{"en":"at ～'s convenience","ja":"～の都合の良いときに"},{"en":"at/on short notice","ja":"急に、即座に"},{"en":"at will","ja":"思いのままに、随意に"},{"en":"by and large","ja":"概して"},{"en":"down the road","ja":"（口論で）やがては、将来は"},{"en":"early on","ja":"早い時期に、早くから"},{"en":"for a change","ja":"気分転換に、たまには"},{"en":"for all I know","ja":"よくは知らないが、たぶん"},{"en":"for nothing","ja":"①無料で ②無駄に"},{"en":"if anything","ja":"どちらかと言えば、もしあるとしても"},{"en":"in a row","ja":"連続して"},{"en":"in person","ja":"（代理人でなく）じかに、自ら"},{"en":"in retrospect","ja":"（過去を）振り返って（みて）"},{"en":"more often than not","ja":"普通は、たいてい"},{"en":"on second thought","ja":"考え直してみて"},{"en":"on the face of it","ja":"見たところは、表面上は"},{"en":"on the spot","ja":"①その場で、即座に ②（口語で）窮地に立って、困って"},{"en":"once (and) for all","ja":"きっぱりと、これを最後に"},{"en":"one of these days","ja":"そのうちに"},{"en":"once upon a time","ja":"昔々"},{"en":"only too","ja":"①（glad, happy, pleased などの前で）とても、大いに ②遺憾[残念]ながら"},{"en":"sort/kind of ～","ja":"ちょっと、なんとなく"},{"en":"such as it is","ja":"大したものではないが、こんな程度のものだが、"},{"en":"the other way around/round/about","ja":"逆に、あべこべに"},{"en":"to date","ja":"現在まで（のところ）"}];
-const FILL_SENTENCES = {
-  "look forward to ～":["I’m really ___ the summer vacation."],
-  "take care of ～":["Could you ___ my dog while I’m away?"],
-  "give up ～":["Don’t ___ your dream just because it is difficult."],
-  "get over ～":["It took her months to ___ the shock."],
-  "get through ～":["We will ___ this difficult period together."],
-  "go through ～":["He had to ___ a lot of difficulties."],
-  "come up with ～":["She ___ a great idea for the project."],
-  "find out ～":["I need to ___ what really happened."],
-  "figure out (～)":["Can you ___ how this machine works?"],
-  "point out ～":["The teacher ___ several mistakes in my essay."],
-  "put off ～":["They decided to ___ the meeting until Friday."],
-  "put on ～":["Please ___ your coat before you go outside."],
-  "take off (～)":["The plane will ___ in ten minutes."],
-  "turn on (～)":["Please ___ the lights."],
-  "turn off (～)":["Don’t forget to ___ the TV before bed."],
-  "set up ～":["They plan to ___ a new company."],
-  "pick up ～":["I’ll ___ you at the station at six."],
-  "carry out ～":["The scientists will ___ an experiment."],
-  "bring about ～":["The new law may ___ major changes."],
-  "call off ～":["The game was ___ because of the rain."],
-  "put up with ～":["I can’t ___ this noise anymore."],
-  "look into ～":["The police will ___ the cause of the accident."],
-  "look for ～":["I’m ___ my keys."],
-  "ask for ～":["He went to the manager to ___ help."],
-  "depend on/upon ～":["The final result will ___ the weather."],
-  "rely on/upon ～":["You can ___ me when you need help."],
-  "focus on ～":["Let’s ___ the most important problem first."],
-  "consist of ～":["The committee ___ ten members."],
-  "be afraid of ～":["Many children ___ the dark."],
-  "be interested in ～":["She is ___ Japanese history."],
-  "pay attention to ～":["Please ___ the teacher."],
-  "fall in love with ～":["He ___ her at first sight."],
-  "make up one's mind":["I finally ___ to study abroad."],
-  "make sense":["Your explanation doesn’t ___."],
-  "make a mistake":["Everyone can ___ sometimes."],
-  "take place":["The meeting will ___ tomorrow."],
-  "keep one's promise/word":["He always ___ his promises."],
-  "get lost":["We ___ on the way to the hotel."],
-  "be likely to do":["It is ___ rain this evening."],
-  "be about to do":["The train is ___ leave."],
-  "lead to ～":["Too much stress can ___ health problems."],
-  "refer to ～":["Please ___ the manual for details."],
-  "contribute to ～":["Exercise can ___ better health."],
-  "depend on/upon ～":["Success often ___ how well you prepare."],
-  "prepare for ～":["We need to ___ the exam."],
-  "think of ～":["Can you ___ a better solution?"],
-  "suffer from ～":["Many people ___ allergies in spring."],
-  "recover from ～":["She quickly ___ the illness."],
-  "believe in ～":["I ___ the importance of practice."],
-  "succeed in ～":["He ___ solving the problem."],
-  "care about ～":["She really ___ the environment."],
-  "deal with ～":["We need to ___ this problem now."],
-  "give up ～":["He decided to ___ smoking."],
-  "grow up":["I ___ in a small town."],
-  "wake up (～)":["I usually ___ at six."],
-  "try on ～":["Can I ___ this jacket?"],
-  "turn out (～)":["The plan ___ to be successful."],
-  "fill out ～":["Please ___ this form."],
-  "pick out ～":["She helped me ___ a gift."],
-  "work on (～)":["I’m ___ a new project."],
-  "get along":["Do you ___ with your coworkers?"],
-  "get together (～)":["Let’s ___ this weekend."],
-  "calm down (～)":["Please ___ and listen to me."],
-  "think over ～":["I need time to ___ your proposal."],
-  "keep doing":["If you ___, you will improve."],
-  "play a role/part (in ～)":["Everyone can ___ in the project."],
-  "make sure (～)":["Please ___ the door is locked."],
-  "make progress":["She is ___ in English."],
-  "do one's best":["I’ll ___ on the test."],
-  "enjoy oneself":["We really ___ at the party."],
-  "pay attention to ～":["You should ___ the details."],
-  "get rid of ～":["I need to ___ these old books."],
-  "used to do/be":["I ___ play tennis every weekend."],
-  "prefer A to B":["I ___ tea ___ coffee."],
-  "prevent A from B":["The rain ___ us ___ going out."],
-  "remind A of/about B":["This song ___ me ___ my childhood."],
-  "regard A as B":["Many people ___ him ___ a great leader."],
-  "after all":["He decided to go, ___ ."],
-  "in time":["We arrived ___ to catch the train."],
-  "on time":["The train arrived ___ ."],
-  "at home":["I stayed ___ all day."],
-  "by and large":["___, the plan worked well."],
-  "in person":["You should meet her ___ ."],
-  "on second thought":["___, I think I’ll stay here."],
-  "once upon a time":["___, there was a young king."]
-};
+const WORDS=[
+["own",["所有する","認める・自分の非を認める","自分自身の・固有の"]],
+["address",["住所","取り組む・対処する","演説・呼びかけ"]],
+["bear",["耐える・我慢する","運ぶ・持つ","産む","熊"]],
+["charge",["請求する・料金","責任・担当","非難する・告発する","充電する"]],
+["claim",["主張する","要求する・請求する","主張・要求"]],
+["cover",["覆う・覆い","報道する","埋め合わせる","扱う・含む"]],
+["draw",["描く","引く・引き出す","引き分け","注意を引く"]],
+["figure",["数字・数値","人物","姿・形","計算する・推測する"]],
+["hold",["持つ・握る","開催する","維持する・保つ","考えを抱く・信じる"]],
+["issue",["問題・論点","発行する","発行物・号","出てくる・生じる"]],
+["mean",["意味する","意図する","意地悪な","平均の"]],
+["object",["物体・物","目的・目標","反対する"]],
+["observe",["観察する","守る・遵守する","述べる・気づく"]],
+["offer",["提供する・申し出る","申し出・提案","機会を与える"]],
+["operate",["操作する・運転する","手術する","機能する・作動する"]],
+["order",["注文する・注文","命令・指示","順序・秩序","命じる"]],
+["present",["現在の・現在","提示する・示す","贈り物","出席している"]],
+["subject",["話題・主題","科目","対象・被験者","従属させる・受けさせる"]],
+["support",["支える","支持する","支援・支持","根拠・証拠"]],
+["treat",["扱う・取り扱う","治療する","ごちそう・楽しみ"]],
+["turn",["回す・曲がる","順番","変化させる","結果・展開"]],
+["account",["口座","説明・記述","考慮する・説明する"]],
+["approach",["近づく","取り組み方・方法","接近・接近すること"]],
+["apply",["適用する","申し込む","当てはまる"]],
+["attend",["出席する","注意を向ける","世話をする"]],
+["concern",["関係する","心配させる","関心・心配"]],
+["conduct",["行う・実施する","行動・振る舞い","指揮する"]],
+["consider",["考慮する","〜とみなす","検討する"]],
+["contain",["含む","収容できる","抑える・封じ込める"]],
+["direct",["直接の・直接に","指揮する・向ける","方向・指示"]],
+["express",["表現する","急行の","表現・言い方"]],
+["face",["顔","直面する","表面・面"]],
+["fail",["失敗する","〜し損なう","不合格になる"]],
+["fit",["適合する・合う","健康な・適した","適合・発作"]],
+["matter",["問題・事柄","重要である","物質"]],
+["note",["メモ・注記","気づく・注意する","特徴・論調"]],
+["produce",["生産する","農産物","引き起こす・生み出す"]],
+["project",["計画・事業","投影する","見積もる・予測する"]],
+["raise",["上げる・持ち上げる","育てる","調達する・集める","提起する"]],
+["reach",["到達する","手を伸ばす","範囲・影響力"]],
+["reason",["理由","理性・分別","論理的に考える"]],
+["respect",["尊敬する・尊敬","点・事項","〜に関して"]],
+["serve",["仕える・役立つ","料理を出す","務める・奉仕する","サーブする"]],
+["stand",["立つ","耐える","立場・態度","売店・屋台"]],
+["strike",["打つ","ストライキ","突然思いつく・印象を与える","削除する・打ち消す"]],
+["value",["価値","重視する","評価する・値をつける"]],
+["maintain",["維持する","主張する","整備する"]],
+["reserve",["予約する・予約","取っておく・確保する","控え・予備"]],
+["yield",["生み出す・産出する","譲る・屈する","産出量・収穫"]]
+].map(([word,ms])=>({id:word,word,meanings:ms}));
 
-let words = INITIAL_WORDS;
-let stats=JSON.parse(localStorage.getItem('jukugo_stats_v4')||'{}');
-let questions=[],qi=0,mode='enja',answered=false,fillAnswer='',fillSentence='';
-
-
-function etymologyGuide(w){
-  const en=String(w.en||'').replace(/[～~]/g,' ').replace(/\s+/g,' ').trim();
-  const ja=String(w.ja||'').replace(/\s+/g,' ').trim();
-  const lower=en.toLowerCase();
-  // 「語源」ではなく、熟語を思い出すための「意味のつながり」。
-  // 無理に A+B=C と断定せず、説明できるものだけ具体化する。
-  const images={
-    be:'～である・～の状態にある',look:'目を向ける・見る',take:'手に取る・受け取る',give:'与える・手渡す',get:'手に入れる・～の状態になる',go:'行く・進む',come:'来る・近づく',put:'置く・据える',make:'作る・～にする',bring:'持ってくる・もたらす',carry:'運ぶ',keep:'保つ・持ち続ける',hold:'持つ・支える',set:'置く・整える',turn:'向きを変える・状態を変える',break:'壊す・破る',call:'呼ぶ',run:'走る・動く',stand:'立つ',fall:'落ちる',find:'見つける',think:'考える・思う',care:'気にかける・気にする',ask:'尋ねる・求める',pay:'支払う',play:'演じる・行う',lead:'導く・先頭に立つ',depend:'頼る・～次第である',rely:'頼る',focus:'焦点を合わせる・集中させる',refer:'向ける・言及する',consist:'成り立つ',prepare:'準備する',search:'探す・捜す',succeed:'成功する・後に続く',contribute:'差し出す・貢献する',prevent:'防ぐ・妨げる',remind:'思い出させる',regard:'みなす・見る',associate:'結びつける',inform:'知らせる',suffer:'苦しむ・被る',result:'結果として生じる',graduate:'卒業する',differ:'異なる',recover:'回復する・取り戻す',hear:'聞く',believe:'信じる',major:'専攻する',abound:'たくさんある・豊富である',insist:'強く主張する',concentrate:'集中する',complain:'不平を言う・訴える',die:'死ぬ',amount:'総計～になる',figure:'考えて答えを出す',point:'指す・示す',pick:'つまみ取る・選び取る',try:'試す',work:'働く・取り組む',fill:'満たす・いっぱいにする',brush:'こする・磨く',read:'読む',live:'生きる・暮らす',learn:'学ぶ',hand:'手渡す',pass:'通る・渡す',pull:'引く',throw:'投げる',catch:'つかむ・捕まえる',wind:'巻く・終える',rule:'支配する・決める',single:'1つにする',miss:'逃す',shy:'ためらう・避ける',hang:'ぶら下がる・とどまる',let:'～させる',follow:'続く・従う',watch:'見る・注意する',tell:'伝える・話す',have:'持つ・経験する',dare:'あえて～する',account:'説明・計算',allow:'許す・可能にする',settle:'落ち着かせる・決める',yearn:'強く望む',count:'数える・重要である',cope:'うまく対処する',comply:'従う',attend:'注意を向ける',aspire:'熱望する',submit:'提出する・従う',consent:'同意する',deal:'扱う・取引する',persist:'固執する・続ける',indulge:'ふける・満たす',embark:'乗り出す',dwell:'長く考える・詳しく述べる',refrain:'控える',discriminate:'区別する',abide:'守る・従う',variety:'種類・変化',host:'多数',issue:'問題・論点',stake:'賭け・危険にさらされたもの',shape:'形・状態',store:'蓄え・用意',effect:'効果・結果',terms:'条件・関係',verge:'瀬戸際・境界',distance:'距離',accordance:'一致・従うこと',proportion:'割合',wake:'通った跡',date:'日付・時点',case:'事例・場合',person:'人・本人',retrospect:'振り返ること',spot:'場所・地点',thought:'考え',time:'時間・時',home:'家・家庭',fashion:'流行・方法',duty:'義務・勤務',schedule:'予定',basis:'基礎',difference:'違い',reason:'理由・道理',role:'役割',part:'部分・役割',promise:'約束',word:'言葉・約束',mind:'心・考え',attention:'注意',love:'愛・強く好むこと',sense:'感覚・意味・道理',mistake:'間違い',progress:'進歩',best:'最善',notice:'注意・気づき',track:'跡・記録',company:'仲間・付き合い',sight:'視界・観光名所',line:'線・行',joke:'冗談',nerve:'神経',better:'よりよいもの',match:'相手・一致',check:'確認・抑制',age:'年齢・時代',ear:'耳',eligible:'資格がある',worth:'価値',rage:'激しい流行'
-  };
-  const direction={to:['～へ・～に','対象へ向かう'],of:['～の・～を対象として','対象とのつながりを示す'],on:['～の上に・～に接して','接触・作動の状態'],upon:['～の上に・～に接して','on と同じように接する'],in:['～の中に・～の状態で','中に入る・その状態の中にある'],at:['～に・～の地点で','一点に向ける'],for:['～のために・～を求めて','目的・対象へ向かう'],from:['～から','出発点から離れる'],with:['～と一緒に・～を伴って','対象と一緒にする'],about:['～について・～の周りに','対象を中心にする'],into:['～の中へ','外から中へ入る'],over:['～を越えて・～の上を','上を越えて向こう側へ行く'],through:['～を通り抜けて','中を通って反対側へ行く'],off:['離れて・停止して','接触・作動状態から離れる'],up:['上へ・完成した状態へ','上へ・完成へ向かう'],down:['下へ・落ち着いて','下へ・低い状態へ向かう'],after:['～の後に・～を追って','後ろから追う'],before:['～の前に','前に位置する'],against:['～に対して・反して','ぶつかる・逆らう'],by:['～によって・～のそばに','手段・そばの対象を示す'],along:['～に沿って','線や道に沿って進む'],around:['～の周りに','周囲を回る'],within:['～以内に・～の内側に','境界の内側にいる'],out:['外へ・外に現れて','内側から外へ・見える状態へ'],away:['離れて','元の場所から離れる'],back:['後ろへ・元の場所へ','戻る・後ろへ向かう'],apart:['離れて・別々に','一緒の状態から離す'],ahead:['前方へ・先に','前に進む'],forward:['前へ','前方へ向ける'],together:['一緒に・まとめて','別々のものを一つにする'],across:['横切って','一方から他方へ渡る'],beyond:['～を越えて','境界の向こうへ'],aside:['脇へ・別に','中心から離して置く'],short:['短く・不足して','目標まで届かない'],long:['長く','長い距離・時間'],first:['最初に','先に位置する'],second:['2番目に・再び考える','順序・再考'],least:['最小の程度','最低限'],most:['最大の程度','最大限'],once:['一度・かつて','一回の出来事']};
-  const special={
-    'turn out':['turn（向き・状態を変える）＋out（外へ／外に現れて）→変化した結果が外に現れる','結果が分かったり、最終的に～になる'],
-    'look forward to':['look（目を向ける）＋forward（前へ）＋to（～へ）→これから来るものへ目を向ける','これから起こることを待ち望む'],
-    'take care of':['take（引き受ける）＋care（気づかい）＋of（対象）→対象への世話・気づかいを引き受ける','人や物の面倒を見る'],
-    'give up':['give（手放す）＋up（上へ・手放す方向）→持っていたものを手放す','続けていたことを手放す'],
-    'find out':['find（見つける）＋out（外へ／外に現れて）→隠れていた情報が外に出て見つかる','調べて事実や答えを知る'],
-    'figure out':['figure（考えて答えを出す）＋out（外へ／外に現れて）→考えた結果を答えとして出す','問題の答えや意味が分かる'],
-    'point out':['point（指す・示す）＋out（外へ）→大事な点を外に向けて示す','重要なことを相手にはっきり示す'],
-    'put off':['put（置く）＋off（離れて）→予定していたことを先へ遠ざけて置く','予定を先へ延ばす'],
-    'put on':['put（置く）＋on（接して）→体に何かを置いて接触させる','服などを身につける'],
-    'take off':['take（取り去る）＋off（離れて）→身についたものを体から離す','服なら脱ぐ、飛行機なら地面から離れる'],
-    'turn on':['turn（向き・状態を変える）＋on（接して／作動して）→作動する状態へ切り替える','スイッチなどを作動させる'],
-    'turn off':['turn（向き・状態を変える）＋off（離れて／停止して）→作動状態から切り離す','スイッチなどを停止させる'],
-    'set up':['set（置く・整える）＋up（完成した状態へ）→使える形に整える','設備や組織などを作って使える状態にする'],
-    'pick up':['pick（つまみ取る）＋up（上へ）→下にあるものをつまんで持ち上げる','物なら拾う、人なら乗せる'],
-    'carry out':['carry（運ぶ）＋out（外へ）→考えや計画を実際の行動へ運び出す','計画などを実行する'],
-    'look into':['look（見る）＋into（中へ）→中をのぞき込む','問題の中身を詳しく調べる'],
-    'look for':['look（目を向ける）＋for（～を求めて）→求めているものへ目を向ける','目的の人・物を探す']
-  };
-  const tokens=en.toLowerCase().split(/\s+/).map(x=>x.replace(/^[.,;:!?()[\]{}]+|[.,;:!?()[\]{}]+$/g,''));
-  const skip=/^(a|an|the|one|ones|one's|your|his|her|their|my|our|i|you|he|she|it|we|they)$/;
-  const unique=[];tokens.forEach(t=>{if(t&&!skip.test(t)&&!unique.includes(t))unique.push(t)});
-  const s=special[lower];
-  if(s)return {summary:'この熟語は、構成語のイメージをつなげると意味を思い出しやすくなります。これは厳密な語源ではなく、暗記の補助です。',parts:[{label:'① 単語を分ける',text:s[0]},{label:'② つながり',text:`→ ${s[1]}。`},{label:'③ 熟語として',text:`「${ja}」`}]};
-
-  const base=unique.find(t=>images[t]);
-  const connector=unique.find(t=>direction[t]);
-  const parts=[];
-  if(base)parts.push({label:'① 中心の語',text:`${base} ＝「${images[base]}」`});
-  if(connector)parts.push({label:base?'② 方向・関係を表す語':'① 方向・関係を表す語',text:`${connector} ＝「${direction[connector][0]}」→ ${direction[connector][1]}。`});
-  if(parts.length>=2){
-    parts.push({label:`${parts.length+1} つなげると`,text:'構成語の基本イメージを手がかりに、熟語全体の意味へつなげて思い出します。'});
-    parts.push({label:`${parts.length+1} 熟語の意味`,text:`「${ja}」`});
-    return {summary:'単語の意味を重複して説明するのではなく、熟語全体を思い出すための手がかりとして整理しています。',parts};
-  }
-  return {summary:'この熟語は、単語ごとの分解だけでは意味を十分に説明しにくいタイプです。無理にこじつけず、熟語全体の意味を覚えるのが基本です。',parts:[{label:'① 熟語全体',text:`${en} ＝「${ja}」`}]};
+const KEY="meaning-vocab-progress-v1";
+let db=JSON.parse(localStorage.getItem(KEY)||"{}");
+let session=null;
+function pkey(w,m){return w+"|"+m}
+function p(w,m){return db[pkey(w,m)] ||= {seen:0,correct:0,wrong:0,streak:0,interval:0,due:0}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function level(x){let a=p(x.w.word,x.m);return a.correct>=3&&a.interval>=14?"定着":a.wrong?"苦手":a.seen?"学習中":"未学習"}
+function counts(){let a=WORDS.flatMap(w=>w.meanings.map(m=>p(w.word,m))),now=Date.now();return{
+new:a.filter(x=>!x.seen).length,due:a.filter(x=>x.seen&&x.due<=now).length,
+weak:a.filter(x=>x.wrong&&!(x.correct>=3&&x.interval>=14)).length,
+mastered:a.filter(x=>x.correct>=3&&x.interval>=14).length,total:a.length}}
+function home(){
+let c=counts();
+view(`<header><div class="muted">意味別 英単語トレーナー</div><h1>今日、覚える。</h1></header><main class="screen">
+<div class="card hero"><div class="muted">自動で弱点を優先</div><h2>10問だけ、まず解こう</h2><p>1語の意味を別々に記録して、苦手な意味を重点的に出します。</p><button class="primary" onclick="start('mixed',10)">学習を始める →</button></div>
+<div class="grid"><div class="stat"><span class="muted">苦手</span><strong>${c.weak}</strong><small>意味</small></div><div class="stat"><span class="muted">今日の復習</span><strong>${c.due}</strong><small>意味</small></div><div class="stat"><span class="muted">未学習</span><strong>${c.new}</strong><small>意味</small></div><div class="stat"><span class="muted">定着</span><strong>${c.mastered}</strong><small>意味</small></div></div>
+<div class="card"><b>すぐできる</b><br><br><div class="grid"><button class="secondary" onclick="start('weak',10)">苦手特訓</button><button class="secondary" onclick="start('due',10)">復習10問</button></div></div></main>`)
 }
-function save(){localStorage.setItem('jukugo_stats_v4',JSON.stringify(stats))}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function shuffle(a){return a.sort(()=>Math.random()-.5)}
-
-function getQuizPool(){
-  const modeEl=document.getElementById('rangeMode');
-  const mode=modeEl?modeEl.value:'all';
-  if(mode!=='custom') return words.slice();
-
-  const start=Number(document.getElementById('rangeStart')?.value);
-  const end=Number(document.getElementById('rangeEnd')?.value);
-  if(!Number.isInteger(start)||!Number.isInteger(end)||start<1||end>words.length||start>end){
-    alert(`出題範囲は1〜${words.length}番の中で、開始番号≦終了番号になるように指定してください。`);
-    return null;
-  }
-  return words.slice(start-1,end);
+function view(x){document.getElementById("app").innerHTML=`<div class="app">${x}<nav class="nav"><button onclick="home()"><b>⌂</b>ホーム</button><button onclick="start('weak',10)"><b>⚡</b>苦手</button><button onclick="list()"><b>☷</b>単語帳</button><button onclick="stats()"><b>◔</b>記録</button></nav></div>`}
+function pool(mode){
+let all=WORDS.flatMap(w=>w.meanings.map(m=>({w,m}))),now=Date.now();
+if(mode==="weak") all=all.filter(x=>p(x.w.word,x.m).wrong && level(x)!=="定着");
+if(mode==="due") all=all.filter(x=>p(x.w.word,x.m).due<=now);
+if(!all.length) all=WORDS.flatMap(w=>w.meanings.map(m=>({w,m})));
+return all.sort((a,b)=>score(b)-score(a))
 }
-
-function toggleRangeInputs(){
-  const custom=document.getElementById('rangeMode')?.value==='custom';
-  const box=document.getElementById('rangeInputs');
-  if(box) box.style.display=custom?'flex':'none';
-  updateRangeStatus();
-  try{
-    localStorage.setItem('jukugo_range_mode',custom?'custom':'all');
-  }catch(e){}
+function score(x){let q=p(x.w.word,x.m),s=Math.random()*3;if(!q.seen)s+=10;if(q.due<=Date.now())s+=8;if(q.wrong)s+=7;if(q.correct<3)s+=3;return s}
+function start(mode,n){let a=pool(mode),pick=[];for(let x of a){if(!pick.some(y=>y.w.word===x.w.word&&y.m===x.m))pick.push(x);if(pick.length===n)break}session={items:pick,i:0,correct:0,mode};study()}
+function study(){let x=session.items[session.i];let enja=Math.random()<.5;session.q={x,enja,answered:false};let opts;
+if(enja){opts=[x.m,...shuffle(WORDS.flatMap(w=>w.meanings).filter(m=>m!==x.m)).slice(0,3)]}
+else{opts=[x.w,...shuffle(WORDS.filter(w=>w!==x.w)).slice(0,3)]}
+session.opts=shuffle(opts);
+view(`<header class="row"><button class="secondary" onclick="home()">←</button><span class="muted">${session.i+1} / ${session.items.length}</span></header><main class="screen"><div class="bar"><i style="width:${session.i/session.items.length*100}%"></i></div>
+<div class="card wordbox"><div class="muted">${enja?"この意味は？":"この英単語は？"}</div><div class="big">${enja?x.w.word:x.m}</div></div>
+<div class="answers">${session.opts.map((o,i)=>`<button class="answer" id="ans${i}" onclick="answer(${i})">${enja?o:o.word}</button>`).join("")}</div><div id="feedback"></div></main>`)
 }
-
-function updateRangeStatus(){
-  const el=document.getElementById('rangeStatus');
-  if(!el)return;
-  const mode=document.getElementById('rangeMode')?.value||'all';
-  if(mode!=='custom'){
-    el.textContent=`現在：1〜${words.length}番（全範囲）`;
-    return;
-  }
-  const s=Number(document.getElementById('rangeStart')?.value);
-  const e=Number(document.getElementById('rangeEnd')?.value);
-  if(Number.isInteger(s)&&Number.isInteger(e)&&s>=1&&e<=words.length&&s<=e){
-    el.textContent=`現在：${s}〜${e}番（${e-s+1}語）`;
-  }else{
-    el.textContent=`1〜${words.length}番で指定してください。`;
-  }
-}
-
-function restoreRangeSettings(){
-  const mode=localStorage.getItem('jukugo_range_mode')||'all';
-  const rm=document.getElementById('rangeMode');
-  if(rm) rm.value=mode==='custom'?'custom':'all';
-  const rs=document.getElementById('rangeStart');
-  const re=document.getElementById('rangeEnd');
-  if(rs) rs.value=localStorage.getItem('jukugo_range_start')||'1';
-  if(re) re.value=localStorage.getItem('jukugo_range_end')||String(words.length);
-  if(rs) rs.addEventListener('input',()=>{localStorage.setItem('jukugo_range_start',rs.value);updateRangeStatus()});
-  if(re) re.addEventListener('input',()=>{localStorage.setItem('jukugo_range_end',re.value);updateRangeStatus()});
-  toggleRangeInputs();
-}
-
-function show(id){['home','quiz','dict','data','list'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById(id).classList.remove('hidden');if(id==='dict')renderDict();if(id==='data')updateData();if(id==='list')renderWordStats();update()}
-function update(){
- document.getElementById('total').textContent=words.length;
- document.getElementById('correct').textContent=Object.values(stats).reduce((n,s)=>n+(s.c||0),0);
- document.getElementById('weak').textContent=words.filter(isReviewNeeded).length;
- document.getElementById('status').textContent=`現在 ${words.length} 語を使用できます。${words.length===1000?'1000語すべて読み込み済み。':''}`;
-}
-function isReviewNeeded(w){const s=stats[w.en]||{};if(!(s.seen||0))return false;const c=s.c||0,wrong=s.w||0;return (s.streak||0)===0 && (wrong>0 || wrong>c)}
-function reviewScore(w){const s=stats[w.en]||{},seen=s.seen||0,wrong=s.w||0;if(!seen)return 0;const rate=(s.c||0)/Math.max(1,seen),days=s.last?Math.max(0,(Date.now()-s.last)/86400000):99,recentWrong=s.lastWrong&&s.lastWrong>s.lastCorrect?45:0;return recentWrong+wrong*18+(1-rate)*30+Math.min(days,14)*1.5}
-function buildSmartPool(pool){
- const n=Math.min(10,pool.length),weak=pool.filter(isReviewNeeded).sort((a,b)=>reviewScore(b)-reviewScore(a)),unseen=pool.filter(w=>!(stats[w.en]?.seen)),stable=pool.filter(w=>stats[w.en]?.seen&&!isReviewNeeded(w)).sort((a,b)=>reviewScore(b)-reviewScore(a));
- const out=[],add=(arr,count,randomize=true)=>{const src=randomize?shuffle([...arr]):[...arr];src.slice(0,count).forEach(w=>{if(!out.includes(w))out.push(w)})};
- add(weak,Math.ceil(n*.5),false);add(unseen,Math.ceil(n*.3),true);add(stable,n,false);add(pool,n,true);return out.slice(0,n);
-}
-function start(m){if(!words.length)return alert('データがありません。');const basePool=getQuizPool();if(!basePool)return;mode=m;let pool=m==='review'?basePool.filter(isReviewNeeded):basePool;if(m==='review'&&!pool.length)return alert('現在、指定範囲内に要復習の熟語はありません。');if(!pool.length)return alert('指定した範囲に熟語がありません。');questions=m==='random'?shuffle([...pool]).slice(0,10):buildSmartPool(pool);qi=0;show('quiz');draw()}
-function startFill(weak=false){const basePool=getQuizPool();if(!basePool)return;mode='fill';let pool=weak?basePool.filter(w=>FILL_SENTENCES[w.en]&&isReviewNeeded(w)):basePool.filter(w=>FILL_SENTENCES[w.en]);if(!pool.length)return alert(weak?'指定範囲内に空所補充の要復習問題はありません。':'指定範囲内に空所補充データがありません。');questions=weak?shuffle([...pool]).slice(0,10):buildSmartPool(pool);qi=0;show('quiz');draw()}
-function getFillKey(w){return Object.keys(FILL_SENTENCES).find(k=>k===w.en)||null}
-function normalizeFill(s){return String(s||'').toLowerCase().replace(/[’']/g,"'").replace(/[~～]/g,'').replace(/\s+/g,' ').trim().replace(/[.,!?;:]+$/,'')}
-function acceptableFill(w,input){const key=getFillKey(w);if(!key)return false;const base=key.replace(/[～~]/g,'').trim(),forms={'look forward to':['looking forward to'],'take care of':['taking care of'],'give up':['giving up'],'come up with':['came up with','coming up with'],'find out':['found out','finding out'],'figure out':['figuring out'],'point out':['pointing out'],'put off':['putting off'],'put on':['putting on'],'pick up':['picking up'],'set up':['setting up'],'turn on':['turning on'],'turn off':['turning off'],'try on':['trying on'],'work on':['working on'],'focus on':['focusing on'],'prepare for':['preparing for'],'deal with':['dealing with'],'succeed in':['succeeding in']};return [base,...(forms[base]||[])].some(x=>normalizeFill(x)===normalizeFill(input))}
-function chooseDistractors(target,mode){
- const key=target.en,targetJa=normalizeFill(target.ja),pool=words.filter(x=>x.en!==key&&normalizeFill(x.ja)!==targetJa),head=key.toLowerCase().split(/\s+/)[0],related=pool.filter(x=>x.en.toLowerCase().split(/\s+/)[0]===head),candidates=shuffle(related.concat(pool)),out=[],seen=new Set();
- for(const x of candidates){const sig=mode==='jaen'?x.en:normalizeFill(x.ja);if(seen.has(sig))continue;seen.add(sig);out.push(x);if(out.length===3)break}return out;
-}
-function draw(){
- answered=false;const w=questions[qi];document.getElementById('count').textContent=`${qi+1} / ${questions.length}`;document.getElementById('qword').textContent=mode==='fill'?'✏️ 空所補充':(mode==='jaen'?w.ja:w.en);document.getElementById('qhint').textContent=mode==='fill'?'英文の空欄に入る熟語を4択から選択':mode==='jaen'?'日本語から英語を選択':'英語から日本語を選択';document.getElementById('choices').innerHTML='';document.getElementById('fillArea').classList.toggle('hidden',mode!=='fill');document.getElementById('fillChoices').innerHTML='';
- if(mode==='fill'){
-   const key=getFillKey(w),raw=FILL_SENTENCES[key][Math.floor(Math.random()*FILL_SENTENCES[key].length)];fillSentence=raw;fillAnswer=key.replace(/[～~]/g,'').trim();document.getElementById('fillSentence').innerHTML=esc(raw).replace(/___/g,'<span class="blank">　　　</span>');
-   const distractors=shuffle(words.filter(x=>x.en!==w.en&&FILL_SENTENCES[x.en]).map(x=>x.en.replace(/[～~]/g,'').trim())).filter((v,i,a)=>normalizeFill(v)!==normalizeFill(fillAnswer)&&a.indexOf(v)===i).slice(0,3),vals=shuffle([fillAnswer,...distractors]);document.getElementById('fillChoices').innerHTML=vals.map(v=>`<button type="button" data-answer="${esc(v)}">${esc(v)}</button>`).join('');document.querySelectorAll('#fillChoices button[data-answer]').forEach(btn=>btn.addEventListener('click',()=>answer(btn,btn.dataset.answer,false,acceptableFill(w,btn.dataset.answer))));
- }else{
-   const ds=chooseDistractors(w,mode),vals=mode==='jaen'?[w.en,...ds.map(x=>x.en)]:[w.ja,...ds.map(x=>x.ja)],choiceHtml=shuffle(vals).map(v=>`<button type="button" data-answer="${esc(v)}">${esc(v)}</button>`).join('');document.getElementById('choices').innerHTML=choiceHtml+`<button type="button" class="unknown" id="unknownBtn">わからない</button>`;document.querySelectorAll('#choices button[data-answer]').forEach(btn=>btn.addEventListener('click',()=>answer(btn,btn.dataset.answer,false)));document.getElementById('unknownBtn').addEventListener('click',()=>answer(document.getElementById('unknownBtn'),'',true));
- }
- document.getElementById('explain').classList.add('hidden');
-}
-function answer(btn,val,isUnknown=false,forcedOk=null){
- if(answered)return;answered=true;const w=questions[qi],ok=forcedOk===null?(!isUnknown&&(mode==='jaen'?val===w.en:val===w.ja)):forcedOk,now=Date.now(),st=stats[w.en]||{c:0,w:0,seen:0,last:0,lastCorrect:0,lastWrong:0,streak:0};
- st[ok?'c':'w']++;st.seen++;st.last=now;if(ok){st.lastCorrect=now;st.streak=(st.streak||0)+1}else{st.lastWrong=now;st.streak=0}stats[w.en]=st;save();if(btn)btn.classList.add(ok?'correct':'wrong');if(mode==='fill'&&!ok)document.querySelectorAll('#fillChoices button[data-answer]').forEach(b=>{if(normalizeFill(b.dataset.answer)===normalizeFill(fillAnswer))b.classList.add('correct')});
- const guide=etymologyGuide(w),partsHtml=guide.parts.length?`<div class="etymologyParts">${guide.parts.map(p=>`<div class="etymologyPart"><b>${esc(p.label)}</b>${esc(p.text)}</div>`).join('')}</div>`:'',sentence=mode==='fill'?`<div class="fillSentence ${ok?'fillCorrect':'fillWrong'}">${esc(fillSentence).replace(/___/g,`<b>${esc(w.en.replace(/[～~]/g,'').trim())}</b>`)}</div>`:'';
- const e=document.getElementById('explain');e.innerHTML=sentence+`<b>${ok?'正解！':'不正解'}</b>${mode==='fill'&&val?`<br>あなたの回答：<b>${esc(val)}</b>`:''}${isUnknown?'（「わからない」を選択）':''}<br><b>${esc(w.en)}</b> = ${esc(w.ja)}<div class="etymology"><b>🧩 熟語の意味のつながり</b><br><span class="small">${esc(guide.summary)}</span>${partsHtml}</div><div class="explain"><b>今回の確認ポイント</b><br>${ok?'正解。最後に、構成語のイメージと熟語全体の意味がつながっているか確認しましょう。':'まず正解の意味を確認し、次に「単語の基本イメージ→組み合わせ→熟語全体」の順で思い出しましょう。'}</div>`;e.classList.remove('hidden');document.querySelectorAll('#choices button').forEach(b=>b.disabled=true);update();updateData();
-}
-
-function nextQ(){if(qi<questions.length-1){qi++;draw()}else{alert('10問終了！');show('home')}}
-function renderDict(){
- let s=(document.getElementById('search').value||'').toLowerCase().trim();
- let a=words.filter(w=>(w.en+' '+w.ja).toLowerCase().includes(s)).slice(0,300);
- document.getElementById('dictList').innerHTML=a.map(w=>`<div class="item"><b>${esc(w.en)}</b><br>${esc(w.ja)}</div>`).join('')||'<p class="small">見つかりません。</p>';
-}
-function getLearningStatus(w){const s=stats[w.en]||{},seen=s.seen||0;if(!seen)return 'unseen';return isReviewNeeded(w)?'weak':'solved'}
-function updateData(){const ranges=[[0,250],[250,500],[500,750],[750,1000]],available=words.slice(0,1000);document.getElementById('dataInfo').textContent=`${available.length}語を4区分で表示。各区分は250語です。学習記録はこの端末に保存されます。`;ranges.forEach((range,i)=>{const arr=available.slice(range[0],range[1]);let wrong=0,solved=0,unseen=0;arr.forEach(w=>{const st=stats[w.en]||{},seen=st.seen||0,wng=st.w||0;if(!seen)unseen++;else if(isReviewNeeded(w))wrong++;else solved++});const total=arr.length||250,wdeg=wrong/total*360,sdeg=(wrong+solved)/total*360,donut=document.getElementById(`donut${i+1}`);if(donut)donut.style.background=`conic-gradient(#ef4444 0deg ${wdeg}deg,#22c55e ${wdeg}deg ${sdeg}deg,#cbd5e1 ${sdeg}deg 360deg)`;document.getElementById(`r${i+1}w`).textContent=`${wrong}語`;document.getElementById(`r${i+1}s`).textContent=`${solved}語`;document.getElementById(`r${i+1}u`).textContent=`${unseen}語`})}
-
-function setStatusFilter(filter){
- show('list');
- const select=document.getElementById('wordListFilter');
- if(select){
-   select.value = filter==='wrong' ? 'wrong1' : filter;
-   renderWordStats();
- }
- document.querySelectorAll('[data-status-filter]').forEach(btn=>{
-   btn.classList.toggle('active',btn.dataset.statusFilter===filter);
- });
-}
-function renderWordStats(){
- const body=document.getElementById('wordStatsBody'); if(!body)return;
- const filter=document.getElementById('wordListFilter')?.value||'all';
- const search=(document.getElementById('wordListSearch')?.value||'').toLowerCase().trim();
- let list=words.map(w=>{
-   const st=stats[w.en]||{};
-   return {w,c:st.c||0,wrong:st.w||0,seen:st.seen||0,status:getLearningStatus(w)};
- });
- if(filter==='wrong2') list=list.filter(x=>x.wrong>=2);
- else if(filter==='wrong1') list=list.filter(x=>x.status==='weak');
- else if(filter==='solved') list=list.filter(x=>x.status==='solved');
- else if(filter==='unseen') list=list.filter(x=>x.status==='unseen');
- if(search) list=list.filter(x=>(x.w.en+' '+x.w.ja).toLowerCase().includes(search));
- list.sort((a,b)=>{
-   if(b.wrong!==a.wrong) return b.wrong-a.wrong;
-   const ar=a.c+a.wrong?a.c/(a.c+a.wrong):-1;
-   const br=b.c+b.wrong?b.c/(b.c+b.wrong):-1;
-   return ar-br || a.w.en.localeCompare(b.w.en);
- });
- document.getElementById('wordListInfo').textContent=`${list.length}語を表示。要復習を優先して表示。正答率も表示しています。`;
- body.innerHTML=list.map(x=>{
-   const total=x.c+x.wrong;
-   const rate=total?Math.round(x.c/total*1000)/10:null;
-   const rateHtml=rate===null?'<span class="rateNone">—</span>':`<span class="${rate<50?'rateBad':'rateGood'}">${rate}%</span>`;
-   const badge=x.status==='weak'?'<span class="statBadge badgeWeak">要復習</span>':x.status==='solved'?'<span class="statBadge badgeSolved">正解</span>':'<span class="statBadge badgeUnseen">未出題</span>';
-   return `<tr><td><b>${esc(x.w.en)}</b><br><span class="small">${esc(x.w.ja)}</span></td><td>✓ ${x.c}</td><td class="${x.wrong>=1?'mistakeCount':''}">✕ ${x.wrong}</td><td>${rateHtml}</td><td>${badge}</td></tr>`;
- }).join('')||'<tr><td colspan="5" class="small" style="text-align:center">該当する熟語はありません。</td></tr>';
-}
-function exportProgress(){
- let rows=[['英熟語','正解数','不正解数','出題回数','最終学習']];
- words.forEach(w=>{let s=stats[w.en]||{};rows.push([w.en,s.c||0,s.w||0,s.seen||0,s.last?new Date(s.last).toLocaleString('ja-JP'):''])});
- let csv=rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join('\n');
- let a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv'}));a.download='jukugo_ai_learning.csv';a.click();
-}
-function resetProgress(){if(confirm('学習記録だけをリセットしますか？')){stats={};save();update();updateData()}}
-restoreRangeSettings();
-update();
-</script>
-
-<script>
-function escapeHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-function escapeAttr(s){return escapeHtml(s);}
-function escapeJs(s){return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'\\r');}
-function renderEtymology(w){return typeof etymologyGuide==='function' ? (typeof etymologyGuide(w)==='string' ? etymologyGuide(w) : (etymologyGuide(w)?.summary || '')) : '';}
-</script>
-
-<script>
-(() => {
-  let deferredPrompt = null;
-  const btn = document.getElementById('installBtn');
-  const status = document.getElementById('installStatus');
-  if (!btn || !status) return;
-  btn.style.display = 'none';
-  const showInstall = () => { btn.style.display = 'block'; status.textContent = 'この端末でアプリとしてインストールできます。'; };
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    showInstall();
-  });
-  btn.addEventListener('click', async () => {
-    if (!deferredPrompt) {
-      status.textContent = 'Chromeがまだインストール可能と判定していません。Chrome右上の︙から「ホーム画面に追加」を確認してください。';
-      return;
-    }
-    deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    if (choice && choice.outcome === 'accepted') status.textContent = 'インストールしました。';
-    deferredPrompt = null;
-    btn.style.display = 'none';
-  });
-  window.addEventListener('appinstalled', () => {
-    deferredPrompt = null;
-    btn.style.display = 'none';
-    status.textContent = 'アプリとしてインストール済みです。';
-  });
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js', {scope: './'})
-        .then(() => { status.dataset.sw = 'ok'; })
-        .catch(err => { status.dataset.sw = 'error'; console.error('PWA service worker:', err); });
-    });
-  }
-})();
-</script>
-
-</body></html>
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function answer(i){if(session.q.answered)return;session.q.answered=true;let x=session.q.x,correct=session.q.enja?session.opts[i]===x.m:session.opts[i]===x.w;let q=p(x.w.word,x.m),now=Date.now();
+document.querySelectorAll(".answer").forEach((b,j)=>{let ok=session.q.enja?session.opts[j]===x.m:session.opts[j]===x.w;if(ok)b.classList.add("correct");if(j===i&&!correct)b.classList.add("wrong")});
+if(correct){session.correct++;q.correct++;q.streak++;let days=[1,3,7,14,30,60,120][Math.min(q.streak-1,6)];q.interval=days;q.due=now+days*86400000}else{q.wrong++;q.streak=0;q.interval=.02;q.due=now+12*60000}q.seen++;save();
+document.getElementById("feedback").innerHTML=`<div class="feedback" style="color:${correct?"#16a34a":"#dc2626"}">${correct?"正解！":"不正解"}<br><span class="small">${x.w.word} = ${x.m}</span></div><button class="primary" onclick="nextQ()">${session.i+1===session.items.length?"結果を見る":"次へ →"}</button>`}
+function nextQ(){session.i++;session.i>=session.items.length?result():study()}
+function result(){let r=Math.round(session.correct/session.items.length*100);view(`<header><div class="muted">学習結果</div><h1>おつかれさま！</h1></header><main class="screen"><div class="card center"><div class="big">${r}%</div><p>${session.correct} / ${session.items.length} 正解</p><button class="primary" onclick="start('mixed',10)">もう10問</button></div><div class="card"><b>次の復習</b><p class="muted">間違えた意味は約12分後、正解を重ねた意味は1日→3日→7日…と間隔を広げます。</p></div></main>`)}
+function list(){view(`<header><div class="muted">単語帳</div><h1>意味から探す</h1></header><main class="screen"><input id="search" class="search" placeholder="英単語・日本語で検索" oninput="drawList()"><div id="items"></div></main>`);drawList()}
+function drawList(){let q=(document.getElementById("search").value||"").toLowerCase();let a=WORDS.filter(w=>w.word.includes(q)||w.meanings.some(m=>m.includes(q)));document.getElementById("items").innerHTML='<div class="list">'+a.map(w=>`<div class="item"><div class="row"><b>${w.word}</b><span class="tag">${w.meanings.length}意味</span></div><div>${w.meanings.map(m=>`<span class="tag">${m}</span>`).join("")}</div></div>`).join("")+"</div>"}
+function stats(){let c=counts();view(`<header><div class="muted">学習記録</div><h1>意味ごとの定着</h1></header><main class="screen"><div class="card"><div class="row"><b>定着率</b><b>${Math.round(c.mastered/c.total*100)}%</b></div><br><div class="bar"><i style="width:${c.mastered/c.total*100}%"></i></div></div><div class="grid"><div class="stat"><span class="muted">総意味</span><strong>${c.total}</strong></div><div class="stat"><span class="muted">定着</span><strong>${c.mastered}</strong></div><div class="stat"><span class="muted">苦手</span><strong>${c.weak}</strong></div><div class="stat"><span class="muted">復習</span><strong>${c.due}</strong></div></div><div class="card"><button class="secondary" onclick="backup()">学習記録をバックアップ</button><br><br><button class="secondary danger" onclick="resetAll()">記録をリセット</button></div></main>`)}
+function backup(){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(db)],{type:"application/json"}));a.download="meaning-vocab-progress.json";a.click()}
+function resetAll(){if(confirm("学習記録をすべて消しますか？")){db={};save();stats()}}
+home();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script></body></html>
