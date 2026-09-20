@@ -18,6 +18,7 @@ h1{margin:4px 0 0;font-size:25px}.screen{padding:8px 16px}.card{background:white
 .feedback{text-align:center;font-weight:800;padding:13px}.bar{height:9px;background:#e5e7eb;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:#4f46e5}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}.list{display:grid;gap:8px}.item{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:13px}.search{width:100%;padding:13px;border:1px solid #d0d5dd;border-radius:13px;margin-bottom:10px}
 .center{text-align:center}.danger{background:#fef2f2;color:#b91c1c}.small{font-size:12px}
+.choicegrid{display:grid;gap:10px}.choice{width:100%;padding:15px;border:2px solid #e5e7eb;border-radius:15px;background:#fff;text-align:left}.choice.selected{border-color:#4f46e5;background:#eef2ff}.choice strong{display:block;margin-bottom:3px}.modecard{cursor:pointer}
 </style></head>
 <body><div id="app"></div>
 <script>
@@ -77,7 +78,7 @@ const KEY="meaning-vocab-progress-v1";
 let db=JSON.parse(localStorage.getItem(KEY)||"{}");
 let session=null;
 function pkey(w,m){return w+"|"+m}
-function p(w,m){return db[pkey(w,m)] ||= {seen:0,correct:0,wrong:0,streak:0,interval:0,due:0}}
+function p(w,m){return db[pkey(w,m)] ||= {seen:0,correct:0,wrong:0,streak:0,interval:0,due:0,testSeen:0,testCorrect:0,testWrong:0}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db))}
 function level(x){let a=p(x.w.word,x.m);return a.correct>=3&&a.interval>=14?"定着":a.wrong?"苦手":a.seen?"学習中":"未学習"}
 function counts(){let a=WORDS.flatMap(w=>w.meanings.map(m=>p(w.word,m))),now=Date.now();return{
@@ -87,35 +88,104 @@ mastered:a.filter(x=>x.correct>=3&&x.interval>=14).length,total:a.length}}
 function home(){
 let c=counts();
 view(`<header><div class="muted">意味別 英単語トレーナー</div><h1>今日、覚える。</h1></header><main class="screen">
-<div class="card hero"><div class="muted">自動で弱点を優先</div><h2>10問だけ、まず解こう</h2><p>1語の意味を別々に記録して、苦手な意味を重点的に出します。</p><button class="primary" onclick="start('mixed',10)">学習を始める →</button></div>
+<div class="card hero"><div class="muted">覚える → 確認する</div><h2>学習とテストを分けました</h2><p>まず四択で周回して覚え、そのあとテストで本当に覚えているか確認できます。</p><button class="primary" onclick="setup('learn')">学習モードを始める →</button></div>
+<div class="card"><b>覚えるための周回</b><p class="muted">四択を見ながら、苦手な意味を優先して何度も練習します。</p><button class="secondary" style="width:100%" onclick="setup('learn')">学習モード</button></div>
+<div class="card"><b>本当に覚えたか確認</b><p class="muted">答えを見せずに最後まで解いて、結果だけ確認します。</p><button class="secondary" style="width:100%" onclick="setup('test')">テストモード</button></div>
 <div class="grid"><div class="stat"><span class="muted">苦手</span><strong>${c.weak}</strong><small>意味</small></div><div class="stat"><span class="muted">今日の復習</span><strong>${c.due}</strong><small>意味</small></div><div class="stat"><span class="muted">未学習</span><strong>${c.new}</strong><small>意味</small></div><div class="stat"><span class="muted">定着</span><strong>${c.mastered}</strong><small>意味</small></div></div>
-<div class="card"><b>すぐできる</b><br><br><div class="grid"><button class="secondary" onclick="start('weak',10)">苦手特訓</button><button class="secondary" onclick="start('due',10)">復習10問</button></div></div></main>`)
+<div class="card"><b>すぐできる</b><br><br><div class="grid"><button class="secondary" onclick="setup('learn','weak')">苦手特訓</button><button class="secondary" onclick="setup('learn','due')">復習10問</button></div></div></main>`)
+}
+function setup(mode,preset='mixed'){
+session={mode,source:preset,direction:'random',count:10};
+view(`<header class="row"><button class="secondary" onclick="home()">←</button><div><div class="muted">${mode==='learn'?'学習モード':'テストモード'}</div><b>出題設定</b></div></header>
+<main class="screen">
+<div class="card"><b>出題方向</b><p class="muted">覚えやすい方向を選べます。</p>
+<div class="choicegrid">
+<button id="dir-ja" class="choice" onclick="chooseDirection('ja')"><strong>🇯🇵 日本語 → 英語</strong><span class="small">日本語の意味を見て、英単語を選ぶ</span></button>
+<button id="dir-en" class="choice" onclick="chooseDirection('en')"><strong>🇬🇧 英語 → 日本語</strong><span class="small">英単語を見て、日本語の意味を選ぶ</span></button>
+<button id="dir-random" class="choice selected" onclick="chooseDirection('random')"><strong>🔀 ランダム</strong><span class="small">2方向を混ぜて出題</span></button>
+</div></div>
+<div class="card"><b>${mode==='learn'?'学習モード':'テストモード'}</b>
+<p class="muted">${mode==='learn'?'正解・不正解をその場で確認しながら、弱点を優先して周回します。':'答え合わせは最後。途中では正解・不正解を表示しないので、実力確認に使えます。'}</p>
+<button class="primary" onclick="beginSession()">この設定で${mode==='learn'?'学習':'テスト'}開始 →</button></div></main>`)
+}
+function chooseDirection(d){
+session.direction=d;
+['ja','en','random'].forEach(x=>document.getElementById('dir-'+x)?.classList.toggle('selected',x===d));
+}
+function beginSession(){
+let a=pool(session.source),pick=[];
+for(let x of a){if(!pick.some(y=>y.w.word===x.w.word&&y.m===x.m))pick.push(x);if(pick.length===session.count)break}
+session.items=pick;session.i=0;session.correct=0;session.answers=[];study();
 }
 function view(x){document.getElementById("app").innerHTML=`<div class="app">${x}<nav class="nav"><button onclick="home()"><b>⌂</b>ホーム</button><button onclick="start('weak',10)"><b>⚡</b>苦手</button><button onclick="list()"><b>☷</b>単語帳</button><button onclick="stats()"><b>◔</b>記録</button></nav></div>`}
 function pool(mode){
 let all=WORDS.flatMap(w=>w.meanings.map(m=>({w,m}))),now=Date.now();
 if(mode==="weak") all=all.filter(x=>p(x.w.word,x.m).wrong && level(x)!=="定着");
 if(mode==="due") all=all.filter(x=>p(x.w.word,x.m).due<=now);
-if(!all.length) all=WORDS.flatMap(w=>w.meanings.map(m=>({w,m})));
-return all.sort((a,b)=>score(b)-score(a))
+return all.length?all.sort((a,b)=>score(b)-score(a)):WORDS.flatMap(w=>w.meanings.map(m=>({w,m}))).sort((a,b)=>score(b)-score(a));
 }
-function score(x){let q=p(x.w.word,x.m),s=Math.random()*3;if(!q.seen)s+=10;if(q.due<=Date.now())s+=8;if(q.wrong)s+=7;if(q.correct<3)s+=3;return s}
-function start(mode,n){let a=pool(mode),pick=[];for(let x of a){if(!pick.some(y=>y.w.word===x.w.word&&y.m===x.m))pick.push(x);if(pick.length===n)break}session={items:pick,i:0,correct:0,mode};study()}
-function study(){let x=session.items[session.i];let enja=Math.random()<.5;session.q={x,enja,answered:false};let opts;
-if(enja){opts=[x.m,...shuffle(WORDS.flatMap(w=>w.meanings).filter(m=>m!==x.m)).slice(0,3)]}
-else{opts=[x.w,...shuffle(WORDS.filter(w=>w!==x.w)).slice(0,3)]}
+function score(x){
+let q=p(x.w.word,x.m),s=Math.random()*3;
+if(!q.seen)s+=10;if(q.due<=Date.now())s+=8;if(q.wrong)s+=7;if(q.correct<3)s+=3;
+return s;
+}
+function study(){
+let x=session.items[session.i];
+let enja=session.direction==='en'||(session.direction==='random'&&Math.random()<.5);
+session.q={x,enja,answered:false};
+let opts;
+if(enja) opts=[x.m,...shuffle(WORDS.flatMap(w=>w.meanings).filter(m=>m!==x.m)).slice(0,3)];
+else opts=[x.w,...shuffle(WORDS.filter(w=>w!==x.w)).slice(0,3)];
 session.opts=shuffle(opts);
-view(`<header class="row"><button class="secondary" onclick="home()">←</button><span class="muted">${session.i+1} / ${session.items.length}</span></header><main class="screen"><div class="bar"><i style="width:${session.i/session.items.length*100}%"></i></div>
-<div class="card wordbox"><div class="muted">${enja?"この意味は？":"この英単語は？"}</div><div class="big">${enja?x.w.word:x.m}</div></div>
-<div class="answers">${session.opts.map((o,i)=>`<button class="answer" id="ans${i}" onclick="answer(${i})">${enja?o:o.word}</button>`).join("")}</div><div id="feedback"></div></main>`)
+view(`<header class="row"><button class="secondary" onclick="home()">←</button><span class="muted">${session.mode==='learn'?'学習':'テスト'}　${session.i+1} / ${session.items.length}</span></header>
+<main class="screen"><div class="bar"><i style="width:${session.i/session.items.length*100}%"></i></div>
+<div class="card wordbox"><div class="muted">${enja?"日本語に合う英単語は？":"英単語に合う日本語は？"}</div><div class="big">${enja?x.m:x.w.word}</div></div>
+<div class="answers">${session.opts.map((o,i)=>`<button class="answer" id="ans${i}" onclick="answer(${i})">${enja?o:o.word}</button>`).join("")}</div>
+<div id="feedback"></div></main>`)
 }
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
-function answer(i){if(session.q.answered)return;session.q.answered=true;let x=session.q.x,correct=session.q.enja?session.opts[i]===x.m:session.opts[i]===x.w;let q=p(x.w.word,x.m),now=Date.now();
-document.querySelectorAll(".answer").forEach((b,j)=>{let ok=session.q.enja?session.opts[j]===x.m:session.opts[j]===x.w;if(ok)b.classList.add("correct");if(j===i&&!correct)b.classList.add("wrong")});
-if(correct){session.correct++;q.correct++;q.streak++;let days=[1,3,7,14,30,60,120][Math.min(q.streak-1,6)];q.interval=days;q.due=now+days*86400000}else{q.wrong++;q.streak=0;q.interval=.02;q.due=now+12*60000}q.seen++;save();
-document.getElementById("feedback").innerHTML=`<div class="feedback" style="color:${correct?"#16a34a":"#dc2626"}">${correct?"正解！":"不正解"}<br><span class="small">${x.w.word} = ${x.m}</span></div><button class="primary" onclick="nextQ()">${session.i+1===session.items.length?"結果を見る":"次へ →"}</button>`}
+function answer(i){
+if(session.q.answered)return;
+session.q.answered=true;
+let x=session.q.x,correct=session.q.enja?session.opts[i]===x.m:session.opts[i]===x.w;
+let q=p(x.w.word,x.m),now=Date.now();
+session.answers.push({x,correct});
+
+if(session.mode==='learn'){
+document.querySelectorAll(".answer").forEach((b,j)=>{
+let ok=session.q.enja?session.opts[j]===x.m:session.opts[j]===x.w;
+if(ok)b.classList.add("correct");if(j===i&&!correct)b.classList.add("wrong")
+});
+if(correct){
+session.correct++;q.correct++;q.streak++;
+let days=[1,3,7,14,30,60,120][Math.min(q.streak-1,6)];
+q.interval=days;q.due=now+days*86400000;
+}else{
+q.wrong++;q.streak=0;q.interval=.02;q.due=now+12*60000;
+}
+q.seen++;save();
+document.getElementById("feedback").innerHTML=`<div class="feedback" style="color:${correct?"#16a34a":"#dc2626"}">${correct?"正解！":"不正解"}<br><span class="small">${x.w.word} = ${x.m}</span></div><button class="primary" onclick="nextQ()">${session.i+1===session.items.length?"結果を見る":"次へ →"}</button>`;
+}else{
+q.testSeen++;if(correct){session.correct++;q.testCorrect++}else{q.testWrong++;q.wrong++;q.due=now;q.streak=0}
+save();
+document.getElementById("feedback").innerHTML=`<div class="feedback">回答を記録しました</div><button class="primary" onclick="nextQ()">${session.i+1===session.items.length?"テスト結果を見る":"次へ →"}</button>`;
+}
+}
 function nextQ(){session.i++;session.i>=session.items.length?result():study()}
-function result(){let r=Math.round(session.correct/session.items.length*100);view(`<header><div class="muted">学習結果</div><h1>おつかれさま！</h1></header><main class="screen"><div class="card center"><div class="big">${r}%</div><p>${session.correct} / ${session.items.length} 正解</p><button class="primary" onclick="start('mixed',10)">もう10問</button></div><div class="card"><b>次の復習</b><p class="muted">間違えた意味は約12分後、正解を重ねた意味は1日→3日→7日…と間隔を広げます。</p></div></main>`)}
+function result(){
+let r=Math.round(session.correct/session.items.length*100);
+let title=session.mode==='learn'?'学習結果':'テスト結果';
+let message=session.mode==='learn'
+?'間違えた意味は約12分後、正解を重ねた意味は1日→3日→7日…と間隔を広げます。'
+:'テスト中は答えを表示せず、結果だけを確認しました。間違えた意味は弱点として学習に戻ります。';
+view(`<header><div class="muted">${title}</div><h1>${session.mode==='learn'?'おつかれさま！':'覚えているかチェック'}</h1></header>
+<main class="screen"><div class="card center"><div class="big">${r}%</div><p>${session.correct} / ${session.items.length} 正解</p>
+<button class="primary" onclick="setup('${session.mode}','${session.source}')">もう一周</button>
+<br><br><button class="secondary" onclick="home()">ホームへ</button></div>
+<div class="card"><b>次にやるなら</b><p class="muted">${message}</p>
+${session.mode==='learn'?'<button class="secondary" onclick="setup(\\'test\\',\\'mixed\\')">このあとテストする →</button>':'<button class="secondary" onclick="setup(\\'learn\\',\\'weak\\')">間違えたところを学習 →</button>'}
+</div></main>`)
+}
 function list(){view(`<header><div class="muted">単語帳</div><h1>意味から探す</h1></header><main class="screen"><input id="search" class="search" placeholder="英単語・日本語で検索" oninput="drawList()"><div id="items"></div></main>`);drawList()}
 function drawList(){let q=(document.getElementById("search").value||"").toLowerCase();let a=WORDS.filter(w=>w.word.includes(q)||w.meanings.some(m=>m.includes(q)));document.getElementById("items").innerHTML='<div class="list">'+a.map(w=>`<div class="item"><div class="row"><b>${w.word}</b><span class="tag">${w.meanings.length}意味</span></div><div>${w.meanings.map(m=>`<span class="tag">${m}</span>`).join("")}</div></div>`).join("")+"</div>"}
 function stats(){let c=counts();view(`<header><div class="muted">学習記録</div><h1>意味ごとの定着</h1></header><main class="screen"><div class="card"><div class="row"><b>定着率</b><b>${Math.round(c.mastered/c.total*100)}%</b></div><br><div class="bar"><i style="width:${c.mastered/c.total*100}%"></i></div></div><div class="grid"><div class="stat"><span class="muted">総意味</span><strong>${c.total}</strong></div><div class="stat"><span class="muted">定着</span><strong>${c.mastered}</strong></div><div class="stat"><span class="muted">苦手</span><strong>${c.weak}</strong></div><div class="stat"><span class="muted">復習</span><strong>${c.due}</strong></div></div><div class="card"><button class="secondary" onclick="backup()">学習記録をバックアップ</button><br><br><button class="secondary danger" onclick="resetAll()">記録をリセット</button></div></main>`)}
